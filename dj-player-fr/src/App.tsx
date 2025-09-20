@@ -204,7 +204,7 @@ export default function App() {
   };
 
   const handleSaveSoundBite = async (updatedSoundBite: SoundBite) => {
-    await fetch(`http://localhost:5001/upload-sound-bite`, {
+    await fetch(`http://localhost:5001/sound-bites`, {
       method: 'POST',
       body: JSON.stringify({
         id: updatedSoundBite.id,

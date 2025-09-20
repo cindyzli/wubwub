@@ -106,7 +106,26 @@ class Response(Resource):
         Thread(target=download_audio, args=(url, uuid)).start()
 
         return {"success": True, "url": public_url}
+    
+class Response2(Resource):
+    def get(self):
+        records = list(soundbite_collection.find({}, {'_id': 0}))
+        return {"soundbites": records}
 
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', type=str)
+        parser.add_argument('label', type=str)
+        args = parser.parse_args()
+
+        id, label = args['id'], args['label']
+        soundbite_collection.update_one({"id": id}, {"$set": {"label": label}})
+
+        return {"success": True}
+
+
+app.add_resource(Response, '/download')
+app.add_reource(Response2, '/sound-bites')
 
 @socketio.on('gesture')
 def handle_gesture(data):
