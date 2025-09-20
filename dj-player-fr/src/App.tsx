@@ -21,9 +21,6 @@ interface Song {
 export default function App() {
   // Theme state
   const [isNightMode, setIsNightMode] = useState(false);
-  
-  // Audio controls
-  const [bassBoost, setBassBoost] = useState(50);
 
   const fetchSongs = async () => {
     const res = await fetch('http://localhost:5001/download');
