@@ -42,13 +42,7 @@ export default function App() {
     setSongQueue(fetchedSongs);
   };
 
-  // Effects
-  useEffect(async () => {
-    await fetchSongs();
-  }, []);
-
   // Queue state
-  const [bassBoost, setBassBoost] = useState(50);
   const [songQueue, setSongQueue] = useState<Song[]>([]);
   const [ledColor, setLedColor] = useState('#00ffff');
 
@@ -69,23 +63,6 @@ export default function App() {
     audioEl,
   } = useDJPlayer(songQueue.map((s) => s.url));
 
-  // Fetch songs from server
-  const fetchSongs = async () => {
-    const res = await fetch('http://localhost:5001/download');
-    const data = await res.json();
-
-    const fetchedSongs: Song[] = data.songs.map((item: any) => ({
-      id: item.id,
-      title: item.name,
-      artist: item.channel,
-      duration: `${Math.floor(item.duration / 60)}:${(item.duration % 60).toString().padStart(2, '0')}`,
-      thumbnail: item.thumbnail,
-      url: item.public_url
-    }));
-
-    setSongQueue(fetchedSongs);
-  };
-
   // Initial load + socket gesture handler
   useEffect(() => {
     const initialize = async () => {
@@ -99,7 +76,6 @@ export default function App() {
       console.log("Received gesture:", data);
 
       if (data.action === "adjust_bass" && typeof data.bass === "number") {
-        setBassBoost(data.bass); // Update UI slider
         setBass(data.bass);      // Update audio backend
       }
 
@@ -114,11 +90,6 @@ export default function App() {
       socket.off("gesture");
     };
   }, []);
-
-  // Keep local UI in sync with DJPlayer bass state
-  useEffect(() => {
-    setBassBoost(bass);
-  }, [bass]);
 
   const handleNightcoreToggle = () => {
     toggleNightcore();
@@ -197,9 +168,8 @@ export default function App() {
 
                 <VerticalSlider
                   label="BASS"
-                  value={bassBoost}
+                  value={bass}
                   onChange={(val) => {
-                    setBassBoost(val);
                     setBass(val);
                   }}
                   color={isNightMode ? 'purple' : 'cyan'}
