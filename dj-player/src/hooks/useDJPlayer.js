@@ -73,6 +73,8 @@ export function useDJPlayer(songs) {
     audioRef.current.playbackRate = newVal ? 1.25 : 1.0;
   };
 
+  
+
   return {
     play,
     pause,
