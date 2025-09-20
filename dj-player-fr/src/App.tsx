@@ -25,6 +25,29 @@ const socket = io("http://localhost:5001");
 
 export default function App() {
   const [isNightMode, setIsNightMode] = useState(false);
+
+  const fetchSongs = async () => {
+    const res = await fetch('http://localhost:5001/download');
+    const data = await res.json();
+    console.log(data.songs);
+
+    let fetchedSongs: Song[] = data.songs.map((item: any) => ({
+      id: item.id,
+      title: item.name,
+      artist: item.channel,
+      duration: `${Math.floor(item.duration / 60)}:${(item.duration % 60).toString().padStart(2, '0')}`,
+      thumbnail: item.thumbnail,
+      url: item.public_url
+    }));
+    setSongQueue(fetchedSongs);
+  };
+
+  // Effects
+  useEffect(async () => {
+    await fetchSongs();
+  }, []);
+
+  // Queue state
   const [bassBoost, setBassBoost] = useState(50);
   const [songQueue, setSongQueue] = useState<Song[]>([]);
   const [ledColor, setLedColor] = useState('#00ffff');
