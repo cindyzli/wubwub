@@ -32,7 +32,13 @@ def download_audio(url, uuid):
 
 class Response(Resource):
     def get(self):
-        return {'message': 'Hello, World!'}
+        # Fetch from MongoDB
+        records = list(collection.find({}, {'_id': 0}))
+
+        # Sort by timestamp (most recent last)
+        records.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
+
+        return {"songs": records}
     
     def post(self):
         parser = reqparse.RequestParser()

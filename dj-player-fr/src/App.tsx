@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SpinningCD } from './components/SpinningCD';
 import { VerticalSlider } from './components/VerticalSlider';
 import { NightcoreSwitch } from './components/NightcoreSwitch';
@@ -25,6 +25,23 @@ export default function App() {
   const [bassBoost, setBassBoost] = useState(50);
   const [volume, setVolume] = useState(75);
   const [isPlaying, setIsPlaying] = useState(true);
+
+  // Effects
+  useEffect(async () => {
+    const res = await fetch('http://localhost:5001/download');
+    const data = await res.json();
+    console.log(data.songs);
+
+    let fetchedSongs: Song[] = data.songs.map((item: any) => ({
+      id: item.id,
+      title: item.name,
+      artist: item.channel,
+      duration: `${Math.floor(item.duration / 60)}:${(item.duration % 60).toString().padStart(2, '0')}`,
+      thumbnail: item.thumbnail,
+      uuid: item.uuid
+    }));
+    setSongQueue(fetchedSongs);
+  }, []);
   
   // Songs
   const [currentSong] = useState({
@@ -40,11 +57,7 @@ export default function App() {
   });
 
   // Queue state
-  const [songQueue, setSongQueue] = useState<Song[]>([
-    { id: '1', title: 'Bass Revolution', artist: 'Electronic Masters', duration: '3:45', thumbnail: currentSong.albumArt },
-    { id: '2', title: 'Neon Nights', artist: 'Synth Lords', duration: '4:12', thumbnail: nextSong.albumArt },
-    { id: '3', title: 'Digital Horizon', artist: 'Cyber Collective', duration: '3:28', thumbnail: currentSong.albumArt }
-  ]);
+  const [songQueue, setSongQueue] = useState<Song[]>([]);
 
   // LED state
   const [ledColor, setLedColor] = useState('#00ffff');

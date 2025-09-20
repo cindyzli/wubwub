@@ -10,24 +10,15 @@ export default function Downloader({ onAddSong }) {
 
     setLoading(true);
     try {
+      const uuid = crypto.randomUUID();
       console.log("🚀 Sending request to server with URL:", url);
-      const res = await fetch("http://localhost:5001/download", {
+      fetch("http://localhost:5001/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, uuid }),
       });
 
-      console.log("📡 Response status:", res.status);
-
-      const data = await res.json();
-      console.log("📥 Server response:", data);
-
-      if (data.success && data.url) {
-        onAddSong(data.url); // add the song into playlist
-        console.log("🎶 Added to playlist:", data.url);
-      } else {
-        console.error("❌ Download failed:", data.error || "Unknown error");
-      }
+      onAddSong(uuid); // add the song into playlist
     } catch (err) {
       console.error("⚠️ Fetch error:", err);
     } finally {
@@ -45,7 +36,7 @@ export default function Downloader({ onAddSong }) {
         onChange={(e) => setUrl(e.target.value)}
         disabled={loading}
       />
-      <button onClick={handleDownload} disabled={loading}>
+      <button onClick={handleDownload} type="button" disabled={loading}>
         {loading ? "Downloading..." : "Download"}
       </button>
     </div>
