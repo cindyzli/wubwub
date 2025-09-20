@@ -4,10 +4,10 @@ import { VerticalSlider } from './components/VerticalSlider';
 import { NightcoreSwitch } from './components/NightcoreSwitch';
 import { SongQueue } from './components/SongQueue';
 import { SoundBites } from './components/SoundBites';
-import { LEDColorBar } from './components/LEDColorBar';
 import { FlashingBorder } from './components/FlashingBorder';
 import { LEDColorBarV2 } from './components/LEDColorBarV2';
 import logo from './img/logo.png';
+import { useDJPlayer } from './hooks/useDjPlayer';
 
 interface Song {
   id: string;
@@ -15,6 +15,7 @@ interface Song {
   artist: string;
   duration: string;
   thumbnail: string;
+  url: string;
 }
 
 export default function App() {
@@ -23,11 +24,8 @@ export default function App() {
   
   // Audio controls
   const [bassBoost, setBassBoost] = useState(50);
-  const [volume, setVolume] = useState(75);
-  const [isPlaying, setIsPlaying] = useState(true);
 
-  // Effects
-  useEffect(async () => {
+  const fetchSongs = async () => {
     const res = await fetch('http://localhost:5001/download');
     const data = await res.json();
     console.log(data.songs);
@@ -38,72 +36,93 @@ export default function App() {
       artist: item.channel,
       duration: `${Math.floor(item.duration / 60)}:${(item.duration % 60).toString().padStart(2, '0')}`,
       thumbnail: item.thumbnail,
-      uuid: item.uuid
+      url: item.public_url
     }));
     setSongQueue(fetchedSongs);
+  };
+
+  // Effects
+  useEffect(async () => {
+    await fetchSongs();
   }, []);
-  
-  // Songs
-  const [currentSong] = useState({
-    title: "Electric Dreams",
-    artist: "Neon Pulse",
-    albumArt: "https://images.unsplash.com/photo-1654842805820-20159a52ba74?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbGJ1bSUyMGNvdmVyJTIwbXVzaWMlMjBlbGVjdHJvbmljfGVufDF8fHx8MTc1ODM0Mzg0Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-  });
-  
-  const [nextSong] = useState({
-    title: "Cyber Symphony",
-    artist: "Digital Wave",
-    albumArt: "https://images.unsplash.com/photo-1613870948964-7125fa3e1aab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW55bCUyMHJlY29yZCUyMG11c2ljJTIwbmVvbnxlbnwxfHx8fDE3NTgzNDM4NDh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-  });
 
   // Queue state
   const [songQueue, setSongQueue] = useState<Song[]>([]);
+
+  // 🎧 integrate DJPlayer
+  const {
+  play,
+  pause,
+  stop,
+  nextSong,
+  playSongAt,
+  setVolume,
+  setBass,
+  toggleNightcore,
+  isPlaying,
+  nightcore,
+  volume,
+  bass,
+  audioEl,
+} = useDJPlayer(songQueue.map((s) => s.url));
 
   // LED state
   const [ledColor, setLedColor] = useState('#00ffff');
 
   // Handlers
   const handleNightcoreToggle = () => {
+    toggleNightcore();
     setIsNightMode(!isNightMode);
   };
 
-  const handleAddSong = (youtubeUrl: string) => {
-    // Mock parsing of YouTube URL
-    const newSong: Song = {
-      id: Date.now().toString(),
-      title: 'New Track',
-      artist: 'Unknown Artist',
-      duration: '3:30',
-      thumbnail: currentSong.albumArt
-    };
-    setSongQueue([...songQueue, newSong]);
+  const handleAddSong = async (youtubeUrl: string) => {
+    const uuid = crypto.randomUUID();
+      console.log("🚀 Sending request to server with URL:", youtubeUrl);
+      await fetch("http://localhost:5001/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: youtubeUrl, uuid }),
+      });
+
+    // Refetch songs from server
+    await fetchSongs();
   };
 
   const handleRemoveSong = (id: string) => {
-    setSongQueue(songQueue.filter(song => song.id !== id));
+    setSongQueue(songQueue.filter((song) => song.id !== id));
   };
 
   const handlePlaySong = (id: string) => {
-    console.log('Playing song:', id);
-    // Here you would implement song switching logic
+    const idx = songQueue.findIndex((s) => s.id === id);
+    if (idx !== -1) {
+      playSongAt(idx);
+    }
   };
 
   const handleSoundBite = (id: string) => {
     console.log('Playing sound bite:', id);
-    // Here you would trigger the actual sound effect
   };
 
   const themeClass = isNightMode ? 'dj-night-theme' : 'dj-day-theme';
-  const primaryGlow = isNightMode ? 'glow-purple' : 'glow-cyan';
 
   return (
     <div className={`h-screen w-full ${themeClass} transition-all duration-1000`}>
       <FlashingBorder color={ledColor} isActive={true}>
-        <div className="flex flex-col h-screen p-6 space-y-4">
+        <div className="h-full w-full">
+          {/* 🔊 Play/Pause button top-left */}
+          <div className="absolute top-4 left-4 z-10">
+            <button
+              onClick={isPlaying ? pause : play}
+              className="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow hover:bg-cyan-600 transition"
+            >
+              {isPlaying ? '⏸ Pause' : '▶ Play'}
+            </button>
+          </div>
+
           {/* Header - Song Queue */}
           <div className="flex-shrink-0">
             <img src={logo} alt="Wub Wub Logo" className="mx-auto mb-4 w-48" />
-            <SongQueue 
+            <SongQueue
               queue={songQueue}
               onAddSong={handleAddSong}
               onRemoveSong={handleRemoveSong}
@@ -117,9 +136,9 @@ export default function App() {
               {/* Current Song CD */}
               <div className="lg:col-span-2 flex justify-center">
                 <SpinningCD
-                  albumArt={currentSong.albumArt}
-                  albumTitle={currentSong.title}
-                  artist={currentSong.artist}
+                  albumArt={songQueue[0]?.thumbnail}
+                  albumTitle={songQueue[0]?.title}
+                  artist={songQueue[0]?.artist}
                   isPlaying={isPlaying}
                   size="large"
                 />
@@ -127,32 +146,31 @@ export default function App() {
 
               {/* Center Controls */}
               <div className="flex justify-center space-x-8">
-                <VerticalSlider
-                  label="BASS"
-                  value={bassBoost}
-                  onChange={setBassBoost}
-                  color={isNightMode ? "purple" : "cyan"}
-                />
-                
-                <NightcoreSwitch
-                  isOn={isNightMode}
-                  onToggle={handleNightcoreToggle}
-                />
                 
                 <VerticalSlider
-                  label="VOL"
-                  value={volume}
-                  onChange={setVolume}
-                  color={isNightMode ? "purple" : "cyan"}
-                />
+  label="BASS"
+  value={bass}
+  onChange={setBass}
+  color={isNightMode ? 'purple' : 'cyan'}
+/>
+
+<NightcoreSwitch isOn={nightcore} onToggle={handleNightcoreToggle} />
+
+<VerticalSlider
+  label="VOL"
+  value={volume}
+  onChange={setVolume}   // pass in 0–100 directly
+  color={isNightMode ? "purple" : "cyan"}
+/>
+
               </div>
 
               {/* Next Song CD */}
               <div className="lg:col-span-2 flex justify-center">
                 <SpinningCD
-                  albumArt={nextSong.albumArt}
-                  albumTitle={nextSong.title}
-                  artist={nextSong.artist}
+                  albumArt={songQueue[1]?.thumbnail}
+                  albumTitle={songQueue[1]?.title}
+                  artist={songQueue[1]?.artist}
                   isPlaying={false}
                   size="medium"
                 />
@@ -160,15 +178,15 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex gap-8 pb-4">
-            <LEDColorBarV2 
-              currentColor={ledColor}
-              onColorChange={setLedColor}
-            />
+          <div className="flex gap-8 pb-4 mt-4">
+            <LEDColorBarV2 currentColor={ledColor} onColorChange={setLedColor} />
             <SoundBites onTriggerBite={handleSoundBite} />
           </div>
         </div>
       </FlashingBorder>
+
+      {/* Hidden audio element for debugging */}
+      {audioEl && <audio controls src={audioEl.src} className="hidden" />}
     </div>
   );
 }

@@ -29,7 +29,7 @@ export function SongQueue({ queue, onAddSong, onRemoveSong, onPlaySong }: SongQu
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 mb-4">
       {/* Add song section */}
       <div className="flex space-x-4 p-4 bg-gray-900/50 border border-cyan-400/30 rounded-lg backdrop-blur-sm">
         <Input

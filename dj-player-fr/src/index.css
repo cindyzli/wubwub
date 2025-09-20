@@ -374,6 +374,10 @@
     display: none !important;
   }
 
+  .hidden {
+    display: none !important;
+  }
+
   * {
     border-color: var(--border);
     outline-color: var(--ring);
@@ -527,6 +531,10 @@
 
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
+  }
+
+  .mt-4 {
+    margin-top: calc(var(--spacing) * 4);
   }
 
   .mx-auto {
