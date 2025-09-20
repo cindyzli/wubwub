@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { io } from "socket.io-client";
 import { SpinningCD } from './components/SpinningCD';
 import { VerticalSlider } from './components/VerticalSlider';
 import { NightcoreSwitch } from './components/NightcoreSwitch';
@@ -9,6 +10,7 @@ import { LEDColorBarV2 } from './components/LEDColorBarV2';
 import logo from './img/logo.png';
 import { useDJPlayer } from './hooks/useDjPlayer';
 
+// Define Song type
 interface Song {
   id: string;
   title: string;
@@ -18,19 +20,38 @@ interface Song {
   url: string;
 }
 
-export default function App() {
-  // Theme state
-  const [isNightMode, setIsNightMode] = useState(false);
-  
-  // Audio controls
-  const [bassBoost, setBassBoost] = useState(50);
+// Initialize socket connection
+const socket = io("http://localhost:5001");
 
+export default function App() {
+  const [isNightMode, setIsNightMode] = useState(false);
+  const [bassBoost, setBassBoost] = useState(50);
+  const [songQueue, setSongQueue] = useState<Song[]>([]);
+  const [ledColor, setLedColor] = useState('#00ffff');
+
+  // DJ Player hook
+  const {
+    play,
+    pause,
+    stop,
+    nextSong,
+    playSongAt,
+    setVolume,
+    setBass,
+    toggleNightcore,
+    isPlaying,
+    nightcore,
+    volume,
+    bass,
+    audioEl,
+  } = useDJPlayer(songQueue.map((s) => s.url));
+
+  // Fetch songs from server
   const fetchSongs = async () => {
     const res = await fetch('http://localhost:5001/download');
     const data = await res.json();
-    console.log(data.songs);
 
-    let fetchedSongs: Song[] = data.songs.map((item: any) => ({
+    const fetchedSongs: Song[] = data.songs.map((item: any) => ({
       id: item.id,
       title: item.name,
       artist: item.channel,
@@ -38,38 +59,44 @@ export default function App() {
       thumbnail: item.thumbnail,
       url: item.public_url
     }));
+
     setSongQueue(fetchedSongs);
   };
 
-  // Effects
-  useEffect(async () => {
-    await fetchSongs();
+  // Initial load + socket gesture handler
+  useEffect(() => {
+    const initialize = async () => {
+      await fetchSongs();
+    };
+
+    initialize();
+
+    // Listen for gesture events
+    socket.on("gesture", (data) => {
+      console.log("Received gesture:", data);
+
+      if (data.action === "adjust_bass" && typeof data.bass === "number") {
+        setBassBoost(data.bass); // Update UI slider
+        setBass(data.bass);      // Update audio backend
+      }
+
+      if (data.action === "adjust_vol" && typeof data.volume === "number") {
+        setVolume(data.volume); // Update UI slider
+      }
+
+      // Additional gesture types
+    });
+
+    return () => {
+      socket.off("gesture");
+    };
   }, []);
 
-  // Queue state
-  const [songQueue, setSongQueue] = useState<Song[]>([]);
+  // Keep local UI in sync with DJPlayer bass state
+  useEffect(() => {
+    setBassBoost(bass);
+  }, [bass]);
 
-  // 🎧 integrate DJPlayer
-  const {
-  play,
-  pause,
-  stop,
-  nextSong,
-  playSongAt,
-  setVolume,
-  setBass,
-  toggleNightcore,
-  isPlaying,
-  nightcore,
-  volume,
-  bass,
-  audioEl,
-} = useDJPlayer(songQueue.map((s) => s.url));
-
-  // LED state
-  const [ledColor, setLedColor] = useState('#00ffff');
-
-  // Handlers
   const handleNightcoreToggle = () => {
     toggleNightcore();
     setIsNightMode(!isNightMode);
@@ -77,15 +104,13 @@ export default function App() {
 
   const handleAddSong = async (youtubeUrl: string) => {
     const uuid = crypto.randomUUID();
-      console.log("🚀 Sending request to server with URL:", youtubeUrl);
-      await fetch("http://localhost:5001/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: youtubeUrl, uuid }),
-      });
+    await fetch("http://localhost:5001/download", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: youtubeUrl, uuid }),
+    });
 
-    // Refetch songs from server
-    await fetchSongs();
+    await fetchSongs(); // refresh queue
   };
 
   const handleRemoveSong = (id: string) => {
@@ -94,9 +119,7 @@ export default function App() {
 
   const handlePlaySong = (id: string) => {
     const idx = songQueue.findIndex((s) => s.id === id);
-    if (idx !== -1) {
-      playSongAt(idx);
-    }
+    if (idx !== -1) playSongAt(idx);
   };
 
   const handleSoundBite = (id: string) => {
@@ -109,7 +132,8 @@ export default function App() {
     <div className={`h-screen w-full ${themeClass} transition-all duration-1000`}>
       <FlashingBorder color={ledColor} isActive={true}>
         <div className="h-full w-full">
-          {/* 🔊 Play/Pause button top-left */}
+
+          {/* Play/Pause Button */}
           <div className="absolute top-4 left-4 z-10">
             <button
               onClick={isPlaying ? pause : play}
@@ -119,7 +143,7 @@ export default function App() {
             </button>
           </div>
 
-          {/* Header - Song Queue */}
+          {/* Header: Queue + Logo */}
           <div className="flex-shrink-0">
             <img src={logo} alt="Wub Wub Logo" className="mx-auto mb-4 w-48" />
             <SongQueue
@@ -130,10 +154,11 @@ export default function App() {
             />
           </div>
 
-          {/* Main DJ Section */}
+          {/* DJ Controls Section */}
           <div className="flex-1 flex items-center justify-center">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center w-full max-w-6xl">
-              {/* Current Song CD */}
+
+              {/* Current Song */}
               <div className="lg:col-span-2 flex justify-center">
                 <SpinningCD
                   albumArt={songQueue[0]?.thumbnail}
@@ -144,28 +169,33 @@ export default function App() {
                 />
               </div>
 
-              {/* Center Controls */}
+              {/* Control Sliders */}
               <div className="flex justify-center space-x-8">
-                
+
                 <VerticalSlider
-  label="BASS"
-  value={bass}
-  onChange={setBass}
-  color={isNightMode ? 'purple' : 'cyan'}
-/>
+                  label="BASS"
+                  value={bassBoost}
+                  onChange={(val) => {
+                    setBassBoost(val);
+                    setBass(val);
+                  }}
+                  color={isNightMode ? 'purple' : 'cyan'}
+                />
 
-<NightcoreSwitch isOn={nightcore} onToggle={handleNightcoreToggle} />
+                <NightcoreSwitch
+                  isOn={nightcore}
+                  onToggle={handleNightcoreToggle}
+                />
 
-<VerticalSlider
-  label="VOL"
-  value={volume}
-  onChange={setVolume}   // pass in 0–100 directly
-  color={isNightMode ? "purple" : "cyan"}
-/>
-
+                <VerticalSlider
+                  label="VOL"
+                  value={volume}
+                  onChange={setVolume}
+                  color={isNightMode ? "purple" : "cyan"}
+                />
               </div>
 
-              {/* Next Song CD */}
+              {/* Next Song */}
               <div className="lg:col-span-2 flex justify-center">
                 <SpinningCD
                   albumArt={songQueue[1]?.thumbnail}
@@ -178,6 +208,7 @@ export default function App() {
             </div>
           </div>
 
+          {/* Bottom: LEDs + Sound Bites */}
           <div className="flex gap-8 pb-4 mt-4">
             <LEDColorBarV2 currentColor={ledColor} onColorChange={setLedColor} />
             <SoundBites onTriggerBite={handleSoundBite} />
@@ -185,7 +216,7 @@ export default function App() {
         </div>
       </FlashingBorder>
 
-      {/* Hidden audio element for debugging */}
+      {/* Hidden Audio Element */}
       {audioEl && <audio controls src={audioEl.src} className="hidden" />}
     </div>
   );

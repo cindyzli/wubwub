@@ -18,6 +18,8 @@ nightcore = 0
 
 nightcore_frames = 0
 not_nightcore_frames = 0 # cooldown variables
+soundbite_frames = 0
+not_soundbite_frames = 10
 swipe_cooldown = 0 
 
 bass_boost = 50 # starting bass boost
@@ -95,6 +97,7 @@ def process_frame_and_generate_command(img):
     global dj_hands_ids, bass_boost, volume, prev_bass_y, prev_vol_y
     global fingers, nightcore_frames, not_nightcore_frames, nightcore
     global prev_right_x, swipe_cooldown
+    global soundbite_frames, not_soundbite_frames
 
     # Hand detection
     hands, new_img = detector.findHands(img, draw=True, flipType=True)
@@ -143,12 +146,12 @@ def process_frame_and_generate_command(img):
                 # Bass boost control
                 if isFist(hand):
                     if prev_bass_y is not None:
-                        if y < prev_bass_y - 40 and bass_boost < 100:
+                        if y < prev_bass_y - 30 and bass_boost < 100:
                             bass_boost = min(100, bass_boost + 10)
                             print("bass boost:", bass_boost)
                             sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
                             return new_img
-                        elif y > prev_bass_y + 40 and bass_boost > 0:
+                        elif y > prev_bass_y + 30 and bass_boost > 0:
                             bass_boost = max(0, bass_boost - 10)
                             print("bass boost:", bass_boost)
                             sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
@@ -157,9 +160,17 @@ def process_frame_and_generate_command(img):
 
                 # Soundbite control
                 elif isSoundBite(hand):
-                    print("sound bite: " + str(fingers))
-                    sio.emit("gesture", {"action": "sound_bite", "number": fingers})
-                    return new_img
+                    soundbite_frames += 1
+                    if soundbite_frames >= 5 and not_soundbite_frames >= 5:
+                        soundbite_frames = 0
+                        not_soundbite_frames = 0
+                        print("sound bite:", fingers)
+                        sio.emit("gesture", {"action": "sound_bite", "number": fingers})
+                        return new_img
+                else:
+                    if not_soundbite_frames < 5:
+                        not_soundbite_frames += 1
+                    soundbite_frames = 0
                 
             if h in dj_hands_ids and hand["type"] == "Left":
                 _, y, _, _ = hand["bbox"]
@@ -167,12 +178,12 @@ def process_frame_and_generate_command(img):
                 # Volume control
                 if isFist(hand):
                     if prev_vol_y is not None:
-                        if y < prev_vol_y - 40 and volume < 100:
+                        if y < prev_vol_y - 30 and volume < 100:
                             volume = min(100, volume + 10)
                             print("volume:", volume)
                             sio.emit("gesture", {"action": "adjust_vol", "volume": volume})
                             return new_img
-                        elif y > prev_vol_y + 40 and volume > 0:
+                        elif y > prev_vol_y + 30 and volume > 0:
                             volume = max(0, volume - 10)
                             print("volume:", volume)
                             sio.emit("gesture", {"action": "adjust_vol", "volume": volume})

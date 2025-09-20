@@ -4,12 +4,17 @@ import yt_dlp, os
 from flask_cors import CORS
 from threading import Thread
 from pymongo.mongo_client import MongoClient
+from urllib.parse import quote
+from flask_socketio import SocketIO, emit
 
 
 app = Flask(__name__)
 api = Api(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
-DOWNLOADS_DIR = os.path.join("..", "dj-player", "public", "songs")
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+DOWNLOADS_DIR = os.path.join("..", "dj-player-fr", "songs")
+DOWNLOADS_DIR = os.path.join("..", "dj-player-fr", "songs")
 os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 uri = "mongodb+srv://cyang2023_db_user:iSJA0hg0pcXui2kc@cluster0.ld8hzph.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(uri)
@@ -87,7 +92,13 @@ class Response(Resource):
             "url": public_url                     # ✅ what frontend should add
         }
     
+@socketio.on('gesture')
+def handle_gesture(data):
+    print("Received gesture:", data)
+    # Forward gesture to all connected clients (e.g., browser)
+    emit("gesture", data, broadcast=True)
+
 api.add_resource(Response, '/download')
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port="5001")
+    socketio.run(app, host="0.0.0.0", port=5001, debug=True)
