@@ -2,7 +2,6 @@ import time
 import cv2
 from time import sleep
 from cvzone.HandTrackingModule import HandDetector
-from datetime import datetime
 
 # Initialize HandDetector for hand tracking
 detector = HandDetector(staticMode=False, maxHands=2, modelComplexity=1, detectionCon=0.5, minTrackCon=0.5)
@@ -10,69 +9,80 @@ detector = HandDetector(staticMode=False, maxHands=2, modelComplexity=1, detecti
 # Global counter variables
 fingers = 0
 dj_hands_ids = []
+bass_boost = 50 # starting bass boost
+volume = 50 # starting volume
+prev_bass_y = None # vertical position of right hand
+prev_vol_y = None # vertical position of left hand
 
 # Initialize video capture
 cap = cv2.VideoCapture(0)
 
-# Function to process frame and count fingers raised
-def isChangeVolume(hand):
-    global fingers
-    fingerup = detector.fingersUp(hand)   
-    
-    if fingerup == [0, 0, 0, 0, 0] and fingers != 0:
-        fingers = 0
-        return True
-    elif fingerup == [0, 1, 0, 0, 0] and fingers != 1: 
-        fingers = 1
-        return True
-    elif fingerup == [0, 1, 1, 0, 0] and fingers != 2: 
-        fingers = 2
-        return True
-    elif fingerup == [0, 1, 1, 1, 0] and fingers != 3: 
-        fingers = 3
-        return True
-    elif fingerup == [0, 1, 1, 1, 1] and fingers != 4: 
-        fingers = 4
-        return True
-    elif fingerup == [1, 1, 1, 1, 1] and fingers != 5: 
-        fingers = 5
-        return True
-    return False
+# Detect flat palm facing down
+def isFist(hand):
+    if not hand or "lmList" not in hand:
+        return False
+    fingerup = detector.fingersUp(hand)
+    return fingerup == [0, 1, 0, 0, 0]
 
 # Function to process the frame and generate JSON commands
 def process_frame_and_generate_command(img):
-    global dj_hands_ids
+    global dj_hands_ids, bass_boost, volume, prev_bass_y, prev_vol_y
 
     # Hand detection
     hands, new_img = detector.findHands(img, draw=True, flipType=True)
-    changeVolume = False
+    r_found = False
+    l_found = False
 
     if hands:
-        # If no hand locked pick largest bounding box
+        # pick largest bounding boxes for R + L
         hand_sizes = []
         for i, h in enumerate(hands):
             x, y, w, h_box = h["bbox"]
             area = w * h_box
             hand_sizes.append((area, i, h))
-        # Sort by area
         hand_sizes.sort(key=lambda d: d[0], reverse=True)
+
+        dj_hands_ids = []
         for area, idx, h in hand_sizes:
-            if h["type"] == "Right":  # only right hand for now
-                dj_hands_ids = [idx]
-                break
+            if h["type"] == "Right" and not r_found:
+                dj_hands_ids.append(idx)
+                r_found = True
+            elif h["type"] == "Left" and not l_found:
+                dj_hands_ids.append(idx)
+                l_found = True
 
-        # Process only locked hands
+        # Process hands
         for h in range(len(hands)):
-            if h in dj_hands_ids and hands[h]["type"] == "Right":
-                changeVolume = isChangeVolume(hands[h])
+            hand = hands[h]
 
-    if changeVolume:
-        print("fingers: " + str(fingers))
-        return {
-            "action": "adjust_volume",
-            "volume": fingers * 20,
-        }, new_img
-    
+            if h in dj_hands_ids and hand["type"] == "Right":
+                _, y, _, _ = hand["bbox"]
+                if isFist(hand):
+                    if prev_bass_y is not None:
+                        if y < prev_bass_y - 30 and bass_boost < 100:
+                            bass_boost = min(100, bass_boost + 10)
+                            print("bass boost:", bass_boost)
+                            return {"action": "adjust_bass", "bass": bass_boost}, new_img
+                        elif y > prev_bass_y + 30 and bass_boost > 0:
+                            bass_boost = max(0, bass_boost - 10)
+                            print("bass boost:", bass_boost)
+                            return {"action": "adjust_bass", "bass": bass_boost}, new_img
+                    prev_bass_y = y  # update every frame
+
+            if h in dj_hands_ids and hand["type"] == "Left":
+                _, y, _, _ = hand["bbox"]
+                if isFist(hand):
+                    if prev_vol_y is not None:
+                        if y < prev_vol_y - 30 and volume < 100:
+                            volume = min(100, volume + 10)
+                            print("volume:", volume)
+                            return {"action": "adjust_vol", "volume": volume}, new_img
+                        elif y > prev_vol_y + 30 and volume > 0:
+                            volume = max(0, volume - 10)
+                            print("volume:", volume)
+                            return {"action": "adjust_vol", "volume": volume}, new_img
+                    prev_vol_y = y  # update every frame
+
     return {"action": "none"}, new_img
 
 # Main loop for video capture and processing
