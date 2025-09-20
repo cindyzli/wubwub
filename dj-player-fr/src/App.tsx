@@ -125,9 +125,11 @@ export default function App() {
     if (idx !== -1) playSongAt(idx);
   };
 
-  const handleSoundBite = (id: string) => {
-    console.log('Playing sound bite:', id);
-  };
+  const handleSoundBite = (url: string) => {
+    const biteAudio = new Audio(url);
+    biteAudio.play();
+};
+
 
   const themeClass = isNightMode ? 'dj-night-theme' : 'dj-day-theme';
 
