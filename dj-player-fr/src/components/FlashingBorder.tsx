@@ -7,7 +7,7 @@ interface FlashingBorderProps {
   isActive?: boolean;
 }
 
-export function FlashingBorder({ children, color, isActive = true }: FlashingBorderProps) {
+export function FlashingBorder({ children, color, isActive = true, duration = 1.5 }: FlashingBorderProps) {
   return (
     <div className="relative w-full h-full overflow-hidden">
       {/* Animated border */}
@@ -26,7 +26,7 @@ export function FlashingBorder({ children, color, isActive = true }: FlashingBor
               ]
             }}
             transition={{ 
-              duration: 1.5, 
+              duration: duration, 
               repeat: Infinity,
               ease: "easeInOut"
             }}

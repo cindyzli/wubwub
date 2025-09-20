@@ -56,6 +56,20 @@ export function LEDColorBarV2({
 
   return (
     <div className="w-full space-y-4">
+      <div className="flex items-center justify-center space-x-4">
+        <span className="text-cyan-300 font-bold">LED COLOR:</span>
+        <motion.div
+          className="w-8 h-8 rounded-full border-2 border-white shadow-lg"
+          style={{ backgroundColor: currentColor }}
+          animate={{ 
+            boxShadow: `0 0 20px ${currentColor}, 0 0 40px ${currentColor}` 
+          }}
+          transition={{ duration: 0.3 }}
+        />
+        <span className="text-cyan-400 font-mono text-sm">
+          {currentColor.toUpperCase()}
+        </span>
+      </div>
       <div className="p-4 bg-gray-900/50 border border-cyan-400/30 rounded-lg">
         <div className="relative">
           <div

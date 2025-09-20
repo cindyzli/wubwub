@@ -6,15 +6,20 @@ from threading import Thread
 from pymongo.mongo_client import MongoClient
 from urllib.parse import quote
 from flask_socketio import SocketIO, emit
+from google import genai
+from dotenv import load_dotenv
+from google.genai import types
 
+load_dotenv()
 
 app = Flask(__name__)
 api = Api(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
+genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-DOWNLOADS_DIR = os.path.join("..", "dj-player-fr", "songs")
-DOWNLOADS_DIR = os.path.join("..", "dj-player-fr", "songs")
+
+DOWNLOADS_DIR = os.path.join("..", "dj-player-fr", "public", "songs")
 os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 uri = "mongodb+srv://cyang2023_db_user:iSJA0hg0pcXui2kc@cluster0.ld8hzph.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(uri)
@@ -36,6 +41,7 @@ def download_audio(url, uuid):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
+
 class Response(Resource):
     def get(self):
         
@@ -78,6 +84,19 @@ class Response(Resource):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
+            # response = genai_client.models.generate_content(
+            #     model="gemini-2.5-flash", contents="Generate a color range between 0 and 360 for hues inspired by the following song: " + info['title'] + 
+            #     " by " + info.get('uploader') + ". Respond with just two numbers min and max, separated by a space.",
+            #     config=types.GenerateContentConfig(
+            #         thinking_config=types.ThinkingConfig(thinking_budget=0) # Disables thinking
+            #     ),
+            # )
+
+            # print("Gemini response:", response)
+            # color_range = response.text.strip()
+            # min_hue, max_hue = color_range.split()
+            min_hue, max_hue = 75, 180
+
             doc = {
                 "uuid": uuid,
                 "url": url,
@@ -86,8 +105,12 @@ class Response(Resource):
                 "name": info['title'],
                 "duration": info.get('duration'),
                 "channel": info.get('uploader'),
-                "thumbnail": info.get('thumbnail')
+                "thumbnail": info.get('thumbnail'),
+                "min_hue": int(min_hue),
+                "max_hue": int(max_hue),
             }
+
+            
 
             if kind == "queue":
                 collection.insert_one(doc)

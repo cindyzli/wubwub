@@ -22,6 +22,8 @@ interface Song {
   duration: string;
   thumbnail: string;
   url: string;
+  min_hue: number;
+  max_hue: number;
 }
 
 // Initialize socket connection
@@ -40,7 +42,9 @@ export default function App() {
       artist: item.channel,
       duration: `${Math.floor(item.duration / 60)}:${(item.duration % 60).toString().padStart(2, '0')}`,
       thumbnail: item.thumbnail,
-      url: item.public_url
+      url: item.public_url,
+      min_hue: item.min_hue,
+      max_hue: item.max_hue,
     }));
     setSongQueue(fetchedSongs);
   };
@@ -114,7 +118,7 @@ export default function App() {
   useEffect(() => {
     const initialize = async () => {
       await fetchSongs();
-      await fetchSongBites();
+      // await fetchSongBites();
     };
 
     initialize();
@@ -319,7 +323,7 @@ export default function App() {
 
           {/* Bottom: LEDs + Sound Bites */}
           <div className="flex gap-8 pb-4 mt-4">
-            <LEDColorBarV2 currentColor={ledColor} onColorChange={setLedColor} />
+            <LEDColorBarV2 currentColor={ledColor} onColorChange={setLedColor} minHue={songQueue[0]?.min_hue} maxHue={songQueue[0]?.max_hue} />
             <SoundBitesV2 onTriggerBite={handleSoundBite} soundBites={soundBites}
               onTriggerBite={handleSoundBite} 
               onEditBite={handleEditSoundBite} />
