@@ -44,7 +44,15 @@ class Response(Resource):
         records.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
 
         return {"songs": records}
-    
+
+    def delete(self):
+        doc = collection.find_one_and_delete({}, sort=[("timestamp", 1)])
+        if doc:
+            doc.pop("_id", None)   # remove ObjectId
+            return {"success": True, "deleted": doc}
+        return {"success": False, "error": "queue empty"}, 404
+
+        
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('url', type=str)

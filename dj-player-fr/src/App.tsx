@@ -95,6 +95,15 @@ export default function App() {
     toggleNightcore();
     setIsNightMode(!isNightMode);
   };
+  const handleNextSong = async () => {
+  // Tell backend to drop the first song
+  await fetch("http://localhost:5001/download", { method: "DELETE" });
+  // Refresh queue from Mongo
+  await fetchSongs();
+  // Tell player to advance
+  nextSong();
+};
+
 
   const handleAddSong = async (youtubeUrl: string) => {
     const uuid = crypto.randomUUID();
@@ -127,15 +136,22 @@ export default function App() {
       <FlashingBorder color={ledColor} isActive={true}>
         <div className="h-full w-full">
 
-          {/* Play/Pause Button */}
-          <div className="absolute top-4 left-4 z-10">
-            <button
-              onClick={isPlaying ? pause : play}
-              className="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow hover:bg-cyan-600 transition"
-            >
-              {isPlaying ? '⏸ Pause' : '▶ Play'}
-            </button>
-          </div>
+         {/* Play/Pause + Next Buttons */}
+<div className="absolute top-4 left-4 z-10 flex gap-2">
+  <button
+    onClick={isPlaying ? pause : play}
+    className="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow hover:bg-cyan-600 transition"
+  >
+    {isPlaying ? '⏸ Pause' : '▶ Play'}
+  </button>
+
+  <button
+    onClick={handleNextSong}
+    className="px-4 py-2 bg-purple-500 text-white rounded-lg shadow hover:bg-purple-600 transition"
+  >
+    ⏭ Next
+  </button>
+</div>
 
           {/* Header: Queue + Logo */}
           <div className="flex-shrink-0">
@@ -210,7 +226,15 @@ export default function App() {
       </FlashingBorder>
 
       {/* Hidden Audio Element */}
-      {audioEl && <audio controls src={audioEl.src} className="hidden" />}
+      {audioEl && (
+  <audio
+    src={songQueue[0]?.url}
+    autoPlay
+    onEnded={handleNextSong}
+    className="hidden"
+  />
+)}
+
     </div>
   );
 }
