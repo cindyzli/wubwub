@@ -1,10 +1,14 @@
 import time
 import cv2
-from time import sleep
+import socketio
+import time
 from cvzone.HandTrackingModule import HandDetector
 
 # Initialize HandDetector for hand tracking
 detector = HandDetector(staticMode=False, maxHands=2, modelComplexity=1, detectionCon=0.5, minTrackCon=0.5)
+
+# Connect to Flask-SocketIO server
+sio = socketio.Client()
 
 # Global counter variables
 dj_hands_ids = [] # locked hands
@@ -25,6 +29,17 @@ prev_right_x = None # for swipe
 
 # Initialize video capture
 cap = cv2.VideoCapture(0)
+
+# Define socket connection events
+@sio.event
+def connect():
+    print("Connected to server")
+
+@sio.event
+def disconnect():
+    print("Disconnected from server")
+
+sio.connect('http://localhost:5001')
 
 # Detect fist
 def isFist(hand):
@@ -64,7 +79,7 @@ def isNightCore(hand):
     
     # Check if thumb and pinky are extended
     thumb_extended = thumb_tip[1] < landmarks[3][1]
-    index_extended = index_tip[1] < landmarks[9][1]
+    index_extended = index_tip[1] < landmarks[7][1]
     pinky_extended = pinky_tip[1] < landmarks[17][1]
 
     # Check if other fingers are curled
@@ -119,7 +134,8 @@ def process_frame_and_generate_command(img):
                         if prev_right_x is not None and (prev_right_x - x) > 80:
                             print("going to next song")
                             swipe_cooldown = 10  # buffer so it doesn't spam
-                            return {"action": "next_song"}, new_img
+                            sio.emit("gesture", {"action": "next_song"})
+                            return new_img
                         prev_right_x = x
                     else:
                         prev_right_x = None
@@ -127,20 +143,23 @@ def process_frame_and_generate_command(img):
                 # Bass boost control
                 if isFist(hand):
                     if prev_bass_y is not None:
-                        if y < prev_bass_y - 30 and bass_boost < 100:
+                        if y < prev_bass_y - 40 and bass_boost < 100:
                             bass_boost = min(100, bass_boost + 10)
                             print("bass boost:", bass_boost)
-                            return {"action": "adjust_bass", "bass": bass_boost}, new_img
-                        elif y > prev_bass_y + 30 and bass_boost > 0:
+                            sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
+                            return new_img
+                        elif y > prev_bass_y + 40 and bass_boost > 0:
                             bass_boost = max(0, bass_boost - 10)
                             print("bass boost:", bass_boost)
-                            return {"action": "adjust_bass", "bass": bass_boost}, new_img
+                            sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
+                            return new_img
                     prev_bass_y = y  # update every frame
 
                 # Soundbite control
                 elif isSoundBite(hand):
                     print("sound bite: " + str(fingers))
-                    return {"action": "sound_bite", "number": fingers}, new_img
+                    sio.emit("gesture", {"action": "sound_bite", "number": fingers})
+                    return new_img
                 
             if h in dj_hands_ids and hand["type"] == "Left":
                 _, y, _, _ = hand["bbox"]
@@ -148,31 +167,34 @@ def process_frame_and_generate_command(img):
                 # Volume control
                 if isFist(hand):
                     if prev_vol_y is not None:
-                        if y < prev_vol_y - 30 and volume < 100:
+                        if y < prev_vol_y - 40 and volume < 100:
                             volume = min(100, volume + 10)
                             print("volume:", volume)
-                            return {"action": "adjust_vol", "volume": volume}, new_img
-                        elif y > prev_vol_y + 30 and volume > 0:
+                            sio.emit("gesture", {"action": "adjust_vol", "volume": volume})
+                            return new_img
+                        elif y > prev_vol_y + 40 and volume > 0:
                             volume = max(0, volume - 10)
                             print("volume:", volume)
-                            return {"action": "adjust_vol", "volume": volume}, new_img
+                            sio.emit("gesture", {"action": "adjust_vol", "volume": volume})
+                            return new_img
                     prev_vol_y = y  # update every frame
 
                 # Nightcore control
-                elif isNightCore(hand):
+                if isNightCore(hand):
                     nightcore_frames += 1
                     if nightcore_frames >= 5 and not_nightcore_frames >= 10:
                         nightcore_frames = 0
                         not_nightcore_frames = 0
                         nightcore = 1 - nightcore
                         print("nightcore:", nightcore)
-                        return {"action": "toggle_nightcore", "state": nightcore}, new_img
+                        sio.emit("gesture", {"action": "toggle_nightcore", "state": nightcore})
+                        return new_img
                 else:
                     if not_nightcore_frames < 10:
                         not_nightcore_frames += 1
                     nightcore_frames = 0
 
-    return {"action": "none"}, new_img
+    return new_img
 
 # Main loop for video capture and processing
 next_time_can_send = 0
@@ -182,7 +204,7 @@ while True:
         break
     
     # Process the frame for hand gesture and send commands
-    command, img = process_frame_and_generate_command(frame)
+    img = process_frame_and_generate_command(frame)
     
     # Display the frame (optional for debugging)
     cv2.imshow("Camera Feed", img)
