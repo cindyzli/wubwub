@@ -20,5 +20,5 @@ def youtube_to_mp3(url, output_folder="downloads"):
         ydl.download([url])
 
 
-url = "https://www.youtube.com/watch?v=fI569nw0YUQ&ab_channel=CherylLynnVEVO" 
+url = "https://www.youtube.com/watch?v=RDH71p3LgWM&list=RDRDH71p3LgWM&start_radio=1" 
 youtube_to_mp3(url)
