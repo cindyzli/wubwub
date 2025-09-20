@@ -20,6 +20,8 @@ uri = "mongodb+srv://cyang2023_db_user:iSJA0hg0pcXui2kc@cluster0.ld8hzph.mongodb
 client = MongoClient(uri)
 database = client["wubwub"]
 collection = database["queue"]
+soundbite_collection = database["soundbites"]
+
 
 def download_audio(url, uuid):
     ydl_opts = {
@@ -34,71 +36,83 @@ def download_audio(url, uuid):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
-
 class Response(Resource):
     def get(self):
-        # Fetch from MongoDB
-        records = list(collection.find({}, {'_id': 0}))
-
-        # Sort by timestamp (most recent last)
-        records.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
+        parser = reqparse.RequestParser()
+        parser.add_argument('kind', type=str, default="queue")
+        args = parser.parse_args()
+        
+        coll = collection if args["kind"] == "queue" else soundbite_collection
+        records = list(coll.find({}, {'_id': 0}))
+        
+        # For the queue, sort by timestamp so order is preserved
+        if args["kind"] == "queue":
+            records.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
 
         return {"songs": records}
-    
+
+    def delete(self):
+        # Only makes sense for the queue
+        doc = collection.find_one_and_delete({}, sort=[("timestamp", 1)])
+        if doc:
+            doc.pop("_id", None)
+            return {"success": True, "deleted": doc}
+        return {"success": False, "error": "queue empty"}, 404
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('url', type=str)
         parser.add_argument('uuid', type=str)
-
+        parser.add_argument('kind', type=str, default="queue")  # queue or soundbite
+        parser.add_argument('label', type=str, required=False)  # optional for soundbite
         args = parser.parse_args()
-        url = args.get('url')
-        uuid = args.get('uuid')
 
+        url, uuid, kind = args['url'], args['uuid'], args['kind']
         filename = f"{uuid}.mp3"
+        public_url = f"/songs/{os.path.basename(filename)}"
 
         ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": os.path.join(DOWNLOADS_DIR, f"{uuid}.%(ext)s"),
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
-    }
-        
-        # Public URL React can use — /public is the root, so /songs/... works
-        public_url = f"/songs/{os.path.basename(filename)}"
+            "format": "bestaudio/best",
+            "outtmpl": os.path.join(DOWNLOADS_DIR, f"{uuid}.%(ext)s"),
+            "postprocessors": [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }],
+        }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
-            # Insert into MongoDB
-            collection.insert_one({
+            doc = {
                 "uuid": uuid,
                 "url": url,
                 "filename": filename,
                 "public_url": public_url,
                 "name": info['title'],
-                "duration": info['duration'],
-                "channel": info['uploader'],
-                "thumbnail": info['thumbnail']
-            })
-        
-        Thread(target=download_audio, args=(url,uuid)).start()
+                "duration": info.get('duration'),
+                "channel": info.get('uploader'),
+                "thumbnail": info.get('thumbnail')
+            }
 
-        return {
-            "success": True,
-            "file": os.path.basename(filename),  # just filename
-            "url": public_url                     # ✅ what frontend should add
-        }
-    
+            if kind == "queue":
+                collection.insert_one(doc)
+            else:
+                # Upsert soundbite by label
+                label = args.get("label") or f"Soundbite-{uuid[:4]}"
+                doc["label"] = label
+                soundbite_collection.update_one({"label": label}, {"$set": doc}, upsert=True)
+
+        Thread(target=download_audio, args=(url, uuid)).start()
+
+        return {"success": True, "url": public_url}
+
+
 @socketio.on('gesture')
 def handle_gesture(data):
     print("Received gesture:", data)
     # Forward gesture to all connected clients (e.g., browser)
-    emit("gesture", data, broadcast=True)
+    emit('gesture', data, broadcast=True)
 
-api.add_resource(Response, '/download')
-
-if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=5001, debug=True)
+if __name__ == "__main__":
+    socketio.run(app, port=5001, debug=True)

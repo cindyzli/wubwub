@@ -48,7 +48,7 @@ export function SongQueue({ queue, onAddSong, onRemoveSong, onPlaySong }: SongQu
       </div>
 
       {/* Queue list */}
-      <div className="space-y-2 max-h-36 overflow-y-auto">
+      <div className="space-y-2 max-h-30 overflow-y-auto">
         {queue.length === 0 ? (
           <div className="text-center py-8 text-cyan-400/60">
             No songs in queue. Add a YouTube link above!

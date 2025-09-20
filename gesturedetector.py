@@ -53,20 +53,21 @@ def isFist(hand):
 # Function to process frame and count fingers raised
 def isSoundBite(hand):
     global fingers
-    fingerup = detector.fingersUp(hand)   
-    
-    if fingerup == [0, 1, 0, 0, 0] and fingers != 1: 
-        fingers = 1
-        return True
-    elif fingerup == [0, 1, 1, 0, 0] and fingers != 2: 
-        fingers = 2
-        return True
-    elif fingerup == [0, 1, 1, 1, 0] and fingers != 3: 
-        fingers = 3
-        return True
-    elif fingerup == [0, 1, 1, 1, 1] and fingers != 4: 
-        fingers = 4
-        return True
+    fingerup = detector.fingersUp(hand)
+
+    # Define valid soundbite gestures
+    valid_gestures = {
+        1: [0, 1, 0, 0, 0],
+        2: [0, 1, 1, 0, 0],
+        3: [0, 1, 1, 1, 0],
+        4: [0, 1, 1, 1, 1]
+    }
+
+    for number, pattern in valid_gestures.items():
+        if fingerup == pattern:
+            fingers = number  # update fingers every frame
+            return True
+
     return False
 
 # Function to check if left hand is making rock sign
@@ -146,31 +147,31 @@ def process_frame_and_generate_command(img):
                 # Bass boost control
                 if isFist(hand):
                     if prev_bass_y is not None:
-                        if y < prev_bass_y - 30 and bass_boost < 100:
-                            bass_boost = min(100, bass_boost + 10)
+                        if y < prev_bass_y - 20 and bass_boost < 100:
+                            bass_boost = min(100, bass_boost + 1)
                             print("bass boost:", bass_boost)
                             sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
                             return new_img
-                        elif y > prev_bass_y + 30 and bass_boost > 0:
-                            bass_boost = max(0, bass_boost - 10)
+                        elif y > prev_bass_y + 20 and bass_boost > 0:
+                            bass_boost = max(0, bass_boost - 1)
                             print("bass boost:", bass_boost)
                             sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
                             return new_img
                     prev_bass_y = y  # update every frame
 
                 # Soundbite control
-                elif isSoundBite(hand):
-                    soundbite_frames += 1
-                    if soundbite_frames >= 5 and not_soundbite_frames >= 5:
-                        soundbite_frames = 0
-                        not_soundbite_frames = 0
-                        print("sound bite:", fingers)
-                        sio.emit("gesture", {"action": "sound_bite", "number": fingers})
-                        return new_img
-                else:
-                    if not_soundbite_frames < 5:
-                        not_soundbite_frames += 1
+            if isSoundBite(hand):
+                soundbite_frames += 1
+                if soundbite_frames >= 5 and not_soundbite_frames >= 5:
                     soundbite_frames = 0
+                    not_soundbite_frames = 0
+                    print("sound bite:", fingers)
+                    sio.emit("gesture", {"action": "sound_bite", "number": fingers})
+                    return new_img
+            else:
+                soundbite_frames = 0
+                if not_soundbite_frames < 5:
+                    not_soundbite_frames += 1
                 
             if h in dj_hands_ids and hand["type"] == "Left":
                 _, y, _, _ = hand["bbox"]
@@ -178,13 +179,13 @@ def process_frame_and_generate_command(img):
                 # Volume control
                 if isFist(hand):
                     if prev_vol_y is not None:
-                        if y < prev_vol_y - 30 and volume < 100:
-                            volume = min(100, volume + 10)
+                        if y < prev_vol_y - 20 and volume < 100:
+                            volume = min(100, volume + 1)
                             print("volume:", volume)
                             sio.emit("gesture", {"action": "adjust_vol", "volume": volume})
                             return new_img
-                        elif y > prev_vol_y + 30 and volume > 0:
-                            volume = max(0, volume - 10)
+                        elif y > prev_vol_y + 20 and volume > 0:
+                            volume = max(0, volume - 1)
                             print("volume:", volume)
                             sio.emit("gesture", {"action": "adjust_vol", "volume": volume})
                             return new_img

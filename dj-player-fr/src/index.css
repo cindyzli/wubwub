@@ -624,6 +624,10 @@
     height: 100vh;
   }
 
+  .max-h-30 {
+    max-height: calc(var(--spacing) * 30);
+  }
+
   .max-h-36 {
     max-height: calc(var(--spacing) * 36);
   }
