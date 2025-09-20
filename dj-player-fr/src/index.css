@@ -517,12 +517,21 @@
     margin-right: calc(var(--spacing) * 2);
   }
 
+  .ml-2 {
+    margin-left: calc(var(--spacing) * 2);
+  }
+
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
   }
 
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
+  }
+
+  .mx-auto {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .flex {
@@ -607,6 +616,10 @@
     height: 100vh;
   }
 
+  .max-h-36 {
+    max-height: calc(var(--spacing) * 36);
+  }
+
   .max-h-48 {
     max-height: calc(var(--spacing) * 48);
   }
@@ -657,6 +670,10 @@
 
   .w-full {
     width: 100%;
+  }
+
+  .w-50 {
+    width: 50%;
   }
 
   .max-w-6xl {
@@ -722,6 +739,14 @@
 
   .justify-center {
     justify-content: center;
+  }
+
+  .items-end {
+    align-items: end;
+  }
+
+  .justify-bottom {
+    justify-content: end;
   }
 
   .gap-1\.5 {
@@ -1151,6 +1176,10 @@
 
   .object-cover {
     object-fit: cover;
+  }
+
+  .pb-4 {
+    padding-bottom: calc(var(--spacing) * 4);
   }
 
   .p-1 {
@@ -2230,4 +2259,97 @@ html {
 @property --tw-duration {
   syntax: "*";
   inherits: false
+}
+
+/* DJ Board Neon Theme Overrides */
+.dj-day-theme {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  color: #00ffff;
+}
+
+.dj-night-theme {
+  background: linear-gradient(135deg, #000000 0%, #2d1b69 50%, #8b00ff 100%);
+  color: #ff00ff;
+}
+
+/* Neon glow utilities */
+.glow-cyan {
+  box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px #8b00ff, 0 0 40px #8b00ff, 0 0 60px #8b00ff;
+}
+
+.glow-pink {
+  box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff;
+}
+
+/* Custom gradient for vinyl records */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Custom Scrollbar Styling for DJ Theme */
+.dj-day-theme ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dj-day-theme ::-webkit-scrollbar-track {
+  background: rgba(26, 26, 46, 0.4);
+  border-radius: 10px;
+}
+
+.dj-day-theme ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0, 255, 255, 0.8) 0%, rgba(0, 153, 204, 0.6) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.dj-day-theme ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(0, 255, 255, 0.9) 0%, rgba(0, 204, 255, 0.7) 100%);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+.dj-day-theme ::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #00ffff 0%, #00ccff 100%);
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+}
+
+.dj-night-theme ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dj-night-theme ::-webkit-scrollbar-track {
+  background: rgba(45, 27, 105, 0.4);
+  border-radius: 10px;
+}
+
+.dj-night-theme ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(179, 0, 255, 0.8) 0%, rgba(139, 0, 255, 0.6) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 0, 255, 0.3);
+}
+
+.dj-night-theme ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(179, 0, 255, 0.8) 0%, rgba(187, 0, 255, 0.7) 100%);
+  box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+}
+
+.dj-night-theme ::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #a600ff 0%, #bb00ff 100%);
+  box-shadow: 0 0 12px rgba(255, 0, 255, 0.6);
+}
+
+/* Firefox scrollbar support */
+.dj-day-theme {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 255, 0.7) rgba(26, 26, 46, 0.4);
+}
+
+.dj-night-theme {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(179, 0, 255, 0.8) rgba(45, 27, 105, 0.4);
 }

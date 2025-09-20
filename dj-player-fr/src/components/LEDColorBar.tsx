@@ -19,12 +19,12 @@ const ledColors = [
 
 export function LEDColorBar({ currentColor, onColorChange }: LEDColorBarProps) {
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-2">
       {/* Current color display */}
       <div className="flex items-center justify-center space-x-4">
         <span className="text-cyan-300 font-bold">LED COLOR:</span>
         <motion.div
-          className="w-8 h-8 rounded-full border-2 border-white shadow-lg"
+          className="w-6 h-6 rounded-full border-2 border-white shadow-lg"
           style={{ backgroundColor: currentColor }}
           animate={{ 
             boxShadow: `0 0 20px ${currentColor}, 0 0 40px ${currentColor}` 
@@ -75,7 +75,7 @@ export function LEDColorBar({ currentColor, onColorChange }: LEDColorBarProps) {
       </div>
 
       {/* LED status indicator */}
-      <div className="text-center">
+      {/* <div className="text-center">
         <motion.div
           className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-800 border border-cyan-400/50 rounded-full"
           animate={{ 
@@ -97,7 +97,7 @@ export function LEDColorBar({ currentColor, onColorChange }: LEDColorBarProps) {
           />
           <span className="text-cyan-300 text-sm font-bold">LED ACTIVE</span>
         </motion.div>
-      </div>
+      </div> */}
     </div>
   );
 }

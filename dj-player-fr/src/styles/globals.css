@@ -187,32 +187,3 @@
 html {
   font-size: var(--font-size);
 }
-
-/* DJ Board Neon Theme Overrides */
-.dj-day-theme {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-  color: #00ffff;
-}
-
-.dj-night-theme {
-  background: linear-gradient(135deg, #000000 0%, #2d1b69 50%, #8b00ff 100%);
-  color: #ff00ff;
-}
-
-/* Neon glow utilities */
-.glow-cyan {
-  box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
-}
-
-.glow-purple {
-  box-shadow: 0 0 20px #8b00ff, 0 0 40px #8b00ff, 0 0 60px #8b00ff;
-}
-
-.glow-pink {
-  box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff;
-}
-
-/* Custom gradient for vinyl records */
-.bg-gradient-radial {
-  background: radial-gradient(circle, var(--tw-gradient-stops));
-}

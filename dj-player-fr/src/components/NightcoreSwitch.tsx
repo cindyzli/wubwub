@@ -7,10 +7,10 @@ interface NightcoreSwitchProps {
 
 export function NightcoreSwitch({ isOn, onToggle }: NightcoreSwitchProps) {
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <label className="text-cyan-300 font-bold text-sm transform -rotate-90 whitespace-nowrap">
+    <div className="flex flex-col items-center justify-center space-y-4">
+      {/* <label className="text-cyan-300 font-bold text-xs transform -rotate-90 whitespace-nowrap">
         NIGHTCORE
-      </label>
+      </label> */}
       
       <motion.div
         className={`relative w-8 h-24 rounded-full border-2 cursor-pointer transition-all duration-300 ${
@@ -39,21 +39,13 @@ export function NightcoreSwitch({ isOn, onToggle }: NightcoreSwitchProps) {
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         />
-        
-        {/* Labels */}
-        <div className="absolute -left-8 top-2 text-xs text-purple-400 font-bold">
-          ON
-        </div>
-        <div className="absolute -left-10 bottom-2 text-xs text-cyan-400 font-bold">
-          OFF
-        </div>
       </motion.div>
       
       {/* Status indicator */}
       <div className={`text-xs font-mono transition-colors duration-300 ${
         isOn ? 'text-purple-400' : 'text-cyan-400'
       }`}>
-        {isOn ? 'NIGHT' : 'DAY'}
+        {isOn ? 'NIGHTCORE' : 'DAY'}
       </div>
     </div>
   );

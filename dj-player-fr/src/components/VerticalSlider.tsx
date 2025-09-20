@@ -35,7 +35,7 @@ export function VerticalSlider({
 
   return (
     <div className="flex flex-col items-center space-y-4">
-      <label className="text-cyan-300 font-bold text-sm transform -rotate-90 whitespace-nowrap">
+      <label className="text-cyan-300 font-bold text-xs transform -rotate-90 whitespace-nowrap">
         {label}
       </label>
       
@@ -56,8 +56,8 @@ export function VerticalSlider({
         />
         
         {/* Slider handle */}
-        <motion.div
-          className={`absolute w-6 h-6 ${colorClasses[color as keyof typeof colorClasses] || colorClasses.cyan} rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2`}
+        {/* <motion.div
+          className={`absolute w-6 h-6 ${colorClasses[color as keyof typeof colorClasses] || colorClasses.cyan} rounded-full border-2 border-white shadow-lg transform -translate-x-1/2`}
           style={{ 
             left: '50%',
             bottom: `${percentage}%`
@@ -65,7 +65,7 @@ export function VerticalSlider({
           initial={{ bottom: 0 }}
           animate={{ bottom: `${percentage}%` }}
           transition={{ duration: 0.2 }}
-        />
+        /> */}
         
         {/* Scale marks */}
         {[...Array(11)].map((_, i) => (
