@@ -1,0 +1,4 @@
+Flask==3.0.3
+Flask-Cors==4.0.0
+yt-dlp==2025.9.5
+ffmpeg-python==0.2.0
