@@ -7,15 +7,21 @@ from cvzone.HandTrackingModule import HandDetector
 detector = HandDetector(staticMode=False, maxHands=2, modelComplexity=1, detectionCon=0.5, minTrackCon=0.5)
 
 # Global counter variables
+dj_hands_ids = [] # locked hands
+
 fingers = 0
-nightcore_frames = 0
-not_nightcore_frames = 0
 nightcore = 0
-dj_hands_ids = []
+
+nightcore_frames = 0
+not_nightcore_frames = 0 # cooldown variables
+swipe_cooldown = 0 
+
 bass_boost = 50 # starting bass boost
 volume = 50 # starting volume
+
 prev_bass_y = None # vertical position of right hand
 prev_vol_y = None # vertical position of left hand
+prev_right_x = None # for swipe
 
 # Initialize video capture
 cap = cv2.VideoCapture(0)
@@ -71,7 +77,9 @@ def isNightCore(hand):
 
 # Function to process the frame and generate JSON commands
 def process_frame_and_generate_command(img):
-    global dj_hands_ids, bass_boost, volume, prev_bass_y, prev_vol_y, fingers, nightcore_frames, not_nightcore_frames, nightcore
+    global dj_hands_ids, bass_boost, volume, prev_bass_y, prev_vol_y
+    global fingers, nightcore_frames, not_nightcore_frames, nightcore
+    global prev_right_x, swipe_cooldown
 
     # Hand detection
     hands, new_img = detector.findHands(img, draw=True, flipType=True)
@@ -102,6 +110,21 @@ def process_frame_and_generate_command(img):
 
             if h in dj_hands_ids and hand["type"] == "Right":
                 _, y, _, _ = hand["bbox"]
+
+                # Next song control
+                if swipe_cooldown > 0:
+                    swipe_cooldown -= 1
+                else:
+                    if detector.fingersUp(hand) == [1,1,1,1,1]:
+                        if prev_right_x is not None and (prev_right_x - x) > 80:
+                            print("going to next song")
+                            swipe_cooldown = 10  # buffer so it doesn't spam
+                            return {"action": "next_song"}, new_img
+                        prev_right_x = x
+                    else:
+                        prev_right_x = None
+
+                # Bass boost control
                 if isFist(hand):
                     if prev_bass_y is not None:
                         if y < prev_bass_y - 30 and bass_boost < 100:
@@ -114,12 +137,15 @@ def process_frame_and_generate_command(img):
                             return {"action": "adjust_bass", "bass": bass_boost}, new_img
                     prev_bass_y = y  # update every frame
 
+                # Soundbite control
                 elif isSoundBite(hand):
                     print("sound bite: " + str(fingers))
                     return {"action": "sound_bite", "number": fingers}, new_img
                 
             if h in dj_hands_ids and hand["type"] == "Left":
                 _, y, _, _ = hand["bbox"]
+
+                # Volume control
                 if isFist(hand):
                     if prev_vol_y is not None:
                         if y < prev_vol_y - 30 and volume < 100:
@@ -131,16 +157,18 @@ def process_frame_and_generate_command(img):
                             print("volume:", volume)
                             return {"action": "adjust_vol", "volume": volume}, new_img
                     prev_vol_y = y  # update every frame
+
+                # Nightcore control
                 elif isNightCore(hand):
                     nightcore_frames += 1
-                    if nightcore_frames >= 5 and not_nightcore_frames >= 5:
+                    if nightcore_frames >= 5 and not_nightcore_frames >= 10:
                         nightcore_frames = 0
                         not_nightcore_frames = 0
                         nightcore = 1 - nightcore
                         print("nightcore:", nightcore)
                         return {"action": "toggle_nightcore", "state": nightcore}, new_img
                 else:
-                    if not_nightcore_frames < 5:
+                    if not_nightcore_frames < 10:
                         not_nightcore_frames += 1
                     nightcore_frames = 0
 
