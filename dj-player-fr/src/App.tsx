@@ -76,14 +76,26 @@ export default function App() {
       console.log("Received gesture:", data);
 
       if (data.action === "adjust_bass" && typeof data.bass === "number") {
-        setBass(data.bass);      // Update audio backend
+        setBass(data.bass); // Update audio backend
       }
 
       if (data.action === "adjust_vol" && typeof data.volume === "number") {
         setVolume(data.volume); // Update UI slider
       }
 
-      // Additional gesture types
+      if (data.action === "sound_bite" && typeof data.number === "number") {
+        handleSoundBite(data.number.toString())
+      }
+
+      if (data.action === "next_song") {
+        // TODO
+      }
+
+      if (data.action === "toggle_nightcore" && typeof data.state === "number") {
+        // if (data.state != nightcore) {
+            toggleNightcore();
+        // }
+      }
     });
 
     return () => {
