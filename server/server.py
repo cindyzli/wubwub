@@ -5,7 +5,8 @@ import yt_dlp, os
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-DOWNLOADS_DIR = "downloads"
+# Save mp3s directly into the React public/songs folder
+DOWNLOADS_DIR = os.path.join("..", "dj-player", "public", "songs")
 os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 
 @app.route("/download", methods=["POST"])
@@ -28,8 +29,17 @@ def download():
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
+            # Get final mp3 filename
             filename = ydl.prepare_filename(info).rsplit(".", 1)[0] + ".mp3"
-        return jsonify({"success": True, "file": os.path.basename(filename)})
+
+        # Public URL React can use — /public is the root, so /songs/... works
+        public_url = f"/songs/{os.path.basename(filename)}"
+
+        return jsonify({
+            "success": True,
+            "file": os.path.basename(filename),  # just filename
+            "url": public_url                     # ✅ what frontend should add
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

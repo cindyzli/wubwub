@@ -9,29 +9,40 @@ export function useDJPlayer(songs) {
   const ctxRef = useRef(null);
   const gainRef = useRef(null);
   const bassRef = useRef(null);
+  const sourceRef = useRef(null);
 
+  // initialize audio context + graph once
   useEffect(() => {
-    // only once on mount
     ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
 
-    // make the <audio> element once
-    audioRef.current = new Audio(songs[0]);
+    audioRef.current = new Audio();
     audioRef.current.crossOrigin = "anonymous";
 
-    // connect it to Web Audio graph
-    const source = ctxRef.current.createMediaElementSource(audioRef.current);
+    sourceRef.current = ctxRef.current.createMediaElementSource(audioRef.current);
 
     gainRef.current = ctxRef.current.createGain();
     bassRef.current = ctxRef.current.createBiquadFilter();
     bassRef.current.type = "lowshelf";
     bassRef.current.frequency.value = 200;
 
-    source.connect(bassRef.current).connect(gainRef.current).connect(ctxRef.current.destination);
-  }, []); // 👈 important: empty array, run once only
+    sourceRef.current
+      .connect(bassRef.current)
+      .connect(gainRef.current)
+      .connect(ctxRef.current.destination);
+  }, []);
+
+  // update audio src whenever playlist/index changes
+  useEffect(() => {
+    if (songs.length === 0 || !audioRef.current) return;
+    audioRef.current.src = songs[index];
+    if (isPlaying) {
+      audioRef.current.play();
+    }
+  }, [songs, index, isPlaying]);
 
   const play = () => {
     if (!audioRef.current) return;
-    ctxRef.current.resume(); // needed on first user gesture
+    ctxRef.current.resume(); // unlock audio context
     audioRef.current.play();
     setIsPlaying(true);
   };
@@ -50,10 +61,16 @@ export function useDJPlayer(songs) {
   };
 
   const nextSong = () => {
-    if (!audioRef.current) return;
-    const next = (index + 1) % songs.length;
-    setIndex(next);
-    audioRef.current.src = songs[next];
+    if (songs.length === 0) return;
+    setIndex((prev) => (prev + 1) % songs.length);
+  };
+
+  // Play a specific song by index (useful for adding a song and immediately playing it)
+  const playSongAt = (i) => {
+    if (!audioRef.current || !ctxRef.current) return;
+    if (i < 0 || i >= songs.length) return;
+    setIndex(i);
+    ctxRef.current.resume();
     audioRef.current.play();
     setIsPlaying(true);
   };
@@ -62,7 +79,7 @@ export function useDJPlayer(songs) {
     if (gainRef.current) gainRef.current.gain.value = v;
   };
 
-  const upBass = (amount) => {
+  const setBass = (amount) => {
     if (bassRef.current) bassRef.current.gain.value = amount;
   };
 
@@ -73,15 +90,14 @@ export function useDJPlayer(songs) {
     audioRef.current.playbackRate = newVal ? 1.25 : 1.0;
   };
 
-  
-
   return {
     play,
     pause,
     stop,
     nextSong,
+  playSongAt,
     setVolume,
-    upBass,
+    setBass,
     toggleNightcore,
     isPlaying,
     nightcore,

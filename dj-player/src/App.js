@@ -3,11 +3,8 @@ import { useDJPlayer } from "./hooks/useDJPlayer";
 import Downloader from "./Downloader";
 
 export default function App() {
-  // Define songs state once, at the top of your component
-  const [songs, setSongs] = useState([
-    "/NOKIA.mp3",
-    "/GP.mp3"
-  ]);
+  // Start with no songs
+  const [songs, setSongs] = useState([]);
 
   const {
     play,
@@ -19,8 +16,9 @@ export default function App() {
     toggleNightcore,
   } = useDJPlayer(songs);
 
-  // Helper to add a new song to playlist
+  // Add new song (same idea as before, but called by Downloader)
   function addSong(newSong) {
+    console.log("🎵 Adding new song:", newSong);
     setSongs((prev) => [...prev, newSong]);
   }
 
@@ -28,13 +26,29 @@ export default function App() {
     <div>
       <h1>DJ Player</h1>
 
-      {/* Downloader will call addSong when a new MP3 is ready */}
+      {/* Downloader will call addSong when Flask finishes download */}
       <Downloader onAddSong={addSong} />
 
-      <button onClick={play}>Play</button>
-      <button onClick={pause}>Pause</button>
-      <button onClick={stop}>Stop</button>
-      <button onClick={nextSong}>Next</button>
+      <button onClick={() => { 
+  console.log("▶️ Play clicked. Playlist =", songs); 
+  play(); 
+}}>Play</button>
+
+<button onClick={() => { 
+  console.log("⏸ Pause clicked. Index =", songs.length > 0 ? songs.length - 1 : "none"); 
+  pause(); 
+}}>Pause</button>
+
+<button onClick={() => { 
+  console.log("⏹ Stop clicked"); 
+  stop(); 
+}}>Stop</button>
+
+<button onClick={() => { 
+  console.log("⏭ Next clicked"); 
+  nextSong(); 
+}}>Next</button>
+
       <button onClick={toggleNightcore}>Nightcore</button>
 
       <input
@@ -42,7 +56,7 @@ export default function App() {
         min="0"
         max="2"
         step="0.01"
-        onChange={(e) => setVolume(e.target.value)}
+        onChange={(e) => setVolume(parseFloat(e.target.value))}
       />
 
       <input
@@ -50,7 +64,7 @@ export default function App() {
         min="-30"
         max="30"
         step="1"
-        onChange={(e) => setBass(e.target.value)}
+        onChange={(e) => setBass(parseFloat(e.target.value))}
       />
     </div>
   );
