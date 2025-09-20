@@ -1,55 +1,58 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-export function useDJPlayer(songs) {
-  const [index, setIndex] = useState(0);
+export function useDJPlayer(songs: string[]) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // 🔊 NEW state
+  const [volume, setVolume] = useState(75); // percent 0–100
+  const [bass, setBass] = useState(50);     // dummy example, 0–100
   const [nightcore, setNightcore] = useState(false);
 
-  const audioRef = useRef(null);
-  const ctxRef = useRef(null);
-  const gainRef = useRef(null);
-  const bassRef = useRef(null);
-  const sourceRef = useRef(null);
-
-  // initialize audio context + graph once
   useEffect(() => {
-    ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-
-    audioRef.current = new Audio();
-    audioRef.current.crossOrigin = "anonymous";
-
-    sourceRef.current = ctxRef.current.createMediaElementSource(audioRef.current);
-
-    gainRef.current = ctxRef.current.createGain();
-    bassRef.current = ctxRef.current.createBiquadFilter();
-    bassRef.current.type = "lowshelf";
-    bassRef.current.frequency.value = 200;
-
-    sourceRef.current
-      .connect(bassRef.current)
-      .connect(gainRef.current)
-      .connect(ctxRef.current.destination);
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
   }, []);
 
-  // update audio src whenever playlist/index changes
+  // load song when index changes
   useEffect(() => {
-    if (songs.length === 0 || !audioRef.current) return;
-    audioRef.current.src = songs[index];
+    if (!audioRef.current) return;
+    audioRef.current.src = songs[currentIndex];
     if (isPlaying) {
-      audioRef.current.play();
+      void audioRef.current.play();
     }
-  }, [songs, index, isPlaying]);
+  }, [currentIndex, songs]);
+
+  // apply volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100; // scale to 0–1
+    }
+  }, [volume]);
+
+  // apply nightcore
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nightcore ? 1.75 : 1.0;
+    }
+  }, [nightcore]);
+
+  // TODO: apply bass with WebAudio filter if you want real EQ
+  useEffect(() => {
+    console.log("Bass set to", bass);
+  }, [bass]);
 
   const play = () => {
     if (!audioRef.current) return;
-    ctxRef.current.resume(); // unlock audio context
-    audioRef.current.play();
+    void audioRef.current.play();
     setIsPlaying(true);
   };
 
   const pause = () => {
     if (!audioRef.current) return;
-    audioRef.current.pause();
+    audioRef.current.pause(); // 👈 doesn’t reset currentTime
     setIsPlaying(false);
   };
 
@@ -61,33 +64,14 @@ export function useDJPlayer(songs) {
   };
 
   const nextSong = () => {
-    if (songs.length === 0) return;
-    setIndex((prev) => (prev + 1) % songs.length);
+    setCurrentIndex((i) => (i + 1) % songs.length);
   };
 
-  // Play a specific song by index (useful for adding a song and immediately playing it)
-  const playSongAt = (i) => {
-    if (!audioRef.current || !ctxRef.current) return;
-    if (i < 0 || i >= songs.length) return;
-    setIndex(i);
-    ctxRef.current.resume();
-    audioRef.current.play();
-    setIsPlaying(true);
-  };
-
-  const setVolume = (v) => {
-    if (gainRef.current) gainRef.current.gain.value = v;
-  };
-
-  const setBass = (amount) => {
-    if (bassRef.current) bassRef.current.gain.value = amount;
-  };
-
-  const toggleNightcore = () => {
-    if (!audioRef.current) return;
-    const newVal = !nightcore;
-    setNightcore(newVal);
-    audioRef.current.playbackRate = newVal ? 1.25 : 1.0;
+  const playSongAt = (index: number) => {
+    if (index >= 0 && index < songs.length) {
+      setCurrentIndex(index);
+      setIsPlaying(true);
+    }
   };
 
   return {
@@ -95,12 +79,14 @@ export function useDJPlayer(songs) {
     pause,
     stop,
     nextSong,
-  playSongAt,
+    playSongAt,
     setVolume,
     setBass,
-    toggleNightcore,
+    toggleNightcore: () => setNightcore((n) => !n),
     isPlaying,
     nightcore,
+    volume, // 👈 return current value
+    bass,   // 👈 return current value
     audioEl: audioRef.current,
   };
 }
