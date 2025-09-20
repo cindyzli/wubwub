@@ -6,6 +6,8 @@ import { SongQueue } from './components/SongQueue';
 import { SoundBites } from './components/SoundBites';
 import { LEDColorBar } from './components/LEDColorBar';
 import { FlashingBorder } from './components/FlashingBorder';
+import { LEDColorBarV2 } from './components/LEDColorBarV2';
+import logo from './img/logo.png';
 
 interface Song {
   id: string;
@@ -82,14 +84,12 @@ export default function App() {
   const primaryGlow = isNightMode ? 'glow-purple' : 'glow-cyan';
 
   return (
-    <div className={`min-h-screen w-full ${themeClass} transition-all duration-1000`}>
+    <div className={`h-screen w-full ${themeClass} transition-all duration-1000`}>
       <FlashingBorder color={ledColor} isActive={true}>
-        <div className="flex flex-col h-screen p-6 space-y-6">
+        <div className="flex flex-col h-screen p-6 space-y-4">
           {/* Header - Song Queue */}
           <div className="flex-shrink-0">
-            <h1 className={`text-4xl font-bold text-center mb-6 ${isNightMode ? 'text-purple-300' : 'text-cyan-300'}`}>
-              DJ CONTROL BOARD
-            </h1>
+            <img src={logo} alt="Wub Wub Logo" className="mx-auto mb-4 w-48" />
             <SongQueue 
               queue={songQueue}
               onAddSong={handleAddSong}
@@ -127,7 +127,7 @@ export default function App() {
                 />
                 
                 <VerticalSlider
-                  label="VOLUME"
+                  label="VOL"
                   value={volume}
                   onChange={setVolume}
                   color={isNightMode ? "purple" : "cyan"}
@@ -147,17 +147,12 @@ export default function App() {
             </div>
           </div>
 
-          {/* Sound Bites Section */}
-          <div className="flex-shrink-0">
-            <SoundBites onTriggerBite={handleSoundBite} />
-          </div>
-
-          {/* LED Color Bar */}
-          <div className="flex-shrink-0">
-            <LEDColorBar 
+          <div className="flex gap-8 pb-4">
+            <LEDColorBarV2 
               currentColor={ledColor}
               onColorChange={setLedColor}
             />
+            <SoundBites onTriggerBite={handleSoundBite} />
           </div>
         </div>
       </FlashingBorder>
