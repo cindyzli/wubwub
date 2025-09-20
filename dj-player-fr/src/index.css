@@ -1234,6 +1234,10 @@
     padding-block: calc(var(--spacing) * 8);
   }
 
+  .text-black {
+    color: var(--color-black);
+  }
+
   .text-center {
     text-align: center;
   }
@@ -2296,6 +2300,10 @@ html {
 /* Custom gradient for vinyl records */
 .bg-gradient-radial {
   background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+.bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Custom Scrollbar Styling for DJ Theme */

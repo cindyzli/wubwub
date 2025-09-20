@@ -9,6 +9,10 @@ import { FlashingBorder } from './components/FlashingBorder';
 import { LEDColorBarV2 } from './components/LEDColorBarV2';
 import logo from './img/logo.png';
 import { useDJPlayer } from './hooks/useDjPlayer';
+import { SoundBitesV2, SoundBite } from './components/SoundBitesV2';
+import { Zap, Volume2, Music, Disc, Radio, Headphones, Mic, Speaker } from 'lucide-react';
+import { SoundBiteModal } from './components/SoundBiteModal';
+
 
 // Define Song type
 interface Song {
@@ -42,9 +46,53 @@ export default function App() {
     setSongQueue(fetchedSongs);
   };
 
+  const getIconForSoundBite = (id: string) => {
+    switch (id) {
+      case '1': return <Speaker className="w-6 h-6" />;
+      case '2': return <Volume2 className="w-6 h-6" />;
+      case '3': return <Music className="w-6 h-6" />;
+      case '4': return <Disc className="w-6 h-6" />;
+    }
+  }
+  const getColorForSoundBite = (id: string) => {
+    switch (id) {
+      case '1': return 'from-red-500 to-orange-500';
+      case '2': return 'from-green-500 to-emerald-500';
+      case '3': return 'from-purple-500 to-indigo-500';
+      case '4': return 'from-yellow-500 to-amber-500';
+    }
+  }
+
+  const fetchSongBites = async () => {
+    const res = await fetch('http://localhost:5001/sound-bites');
+    const data = await res.json();
+    console.log('Fetched sound bites:', data.soundBites);
+
+    let fetchedBites: SoundBite[] = data.soundBites.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      icon: getIconForSoundBite(item.id),
+      color: getColorForSoundBite(item.id),
+      audioUrl: item.public_url
+    }));
+    setSoundBites(fetchedBites);
+  }
+
   // Queue state
   const [songQueue, setSongQueue] = useState<Song[]>([]);
   const [ledColor, setLedColor] = useState('#00ffff');
+
+  // Sound Bites state
+  const [soundBites, setSoundBites] = useState<SoundBite[]>([
+    { id: '1', name: 'Air Horn', icon: <Speaker className="w-6 h-6" />, color: 'from-red-500 to-orange-500', audioUrl: undefined },
+    { id: '2', name: 'Applause', icon: <Volume2 className="w-6 h-6" />, color: 'from-green-500 to-emerald-500', audioUrl: undefined },
+    { id: '3', name: 'Bass Drop', icon: <Music className="w-6 h-6" />, color: 'from-purple-500 to-indigo-500', audioUrl: undefined },
+    { id: '4', name: 'Scratch', icon: <Disc className="w-6 h-6" />, color: 'from-yellow-500 to-amber-500', audioUrl: undefined },
+  ]);
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSoundBite, setEditingSoundBite] = useState<SoundBite | null>(null);
 
   // DJ Player hook
   const {
@@ -67,6 +115,7 @@ export default function App() {
   useEffect(() => {
     const initialize = async () => {
       await fetchSongs();
+      await fetchSongBites();
     };
 
     initialize();
@@ -117,7 +166,42 @@ export default function App() {
   };
 
   const handleSoundBite = (id: string) => {
-    console.log('Playing sound bite:', id);
+    const soundBite = soundBites.find(bite => bite.id === id);
+    if (soundBite?.audioUrl) {
+      // Play the custom audio
+      const audio = new Audio(soundBite.audioUrl);
+      audio.play().catch(console.error);
+    } else {
+      console.log('Playing default sound bite:', id);
+      // Here you would implement default sound effect playback
+    }
+  };
+
+  const handleEditSoundBite = (soundBite: SoundBite) => {
+    setEditingSoundBite(soundBite);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveSoundBite = async (updatedSoundBite: SoundBite) => {
+    await fetch(`http://localhost:5001/upload-sound-bite`, {
+      method: 'POST',
+      body: JSON.stringify({
+        id: updatedSoundBite.id,
+        name: updatedSoundBite.name,
+        audioData: updatedSoundBite.file ? await updatedSoundBite.file.arrayBuffer() : null
+      }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    await fetchSongBites();
+    setIsModalOpen(false);
+    setEditingSoundBite(null);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingSoundBite(null);
   };
 
   const themeClass = isNightMode ? 'dj-night-theme' : 'dj-day-theme';
@@ -125,7 +209,7 @@ export default function App() {
   return (
     <div className={`h-screen w-full ${themeClass} transition-all duration-1000`}>
       <FlashingBorder color={ledColor} isActive={true}>
-        <div className="h-full w-full">
+        <div className="h-full w-full p-4">
 
           {/* Play/Pause Button */}
           <div className="absolute top-4 left-4 z-10">
@@ -204,13 +288,24 @@ export default function App() {
           {/* Bottom: LEDs + Sound Bites */}
           <div className="flex gap-8 pb-4 mt-4">
             <LEDColorBarV2 currentColor={ledColor} onColorChange={setLedColor} />
-            <SoundBites onTriggerBite={handleSoundBite} />
+            <SoundBitesV2 onTriggerBite={handleSoundBite} soundBites={soundBites}
+              onTriggerBite={handleSoundBite} 
+              onEditBite={handleEditSoundBite} />
           </div>
         </div>
       </FlashingBorder>
 
       {/* Hidden Audio Element */}
       {audioEl && <audio controls src={audioEl.src} className="hidden" />}
+
+      {/* Sound Bite Modal */}
+      <SoundBiteModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        soundBite={editingSoundBite}
+        onSave={handleSaveSoundBite}
+        isNightMode={isNightMode}
+      />
     </div>
   );
 }

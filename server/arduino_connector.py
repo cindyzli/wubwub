@@ -2,7 +2,7 @@ import serial
 import time
 
 # adjust port name to your Arduino's
-arduino = serial.Serial(port="/dev/cu.usbmodem1401", baudrate=9600, timeout=1)
+arduino = serial.Serial(port="COM6", baudrate=9600, timeout=1)
 time.sleep(2)  # wait for Arduino reset
 
 def send_command(cmd):
