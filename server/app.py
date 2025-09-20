@@ -38,16 +38,10 @@ def download_audio(url, uuid):
         ydl.download([url])
 class Response(Resource):
     def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('kind', type=str, default="queue")
-        args = parser.parse_args()
         
-        coll = collection if args["kind"] == "queue" else soundbite_collection
-        records = list(coll.find({}, {'_id': 0}))
+        records = list(collection.find({}, {'_id': 0}))
         
-        # For the queue, sort by timestamp so order is preserved
-        if args["kind"] == "queue":
-            records.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
+        records.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
 
         return {"songs": records}
 
@@ -124,8 +118,8 @@ class Response2(Resource):
         return {"success": True}
 
 
-app.add_resource(Response, '/download')
-app.add_reource(Response2, '/sound-bites')
+api.add_resource(Response, '/download')
+api.add_resource(Response2, '/sound-bites')
 
 @socketio.on('gesture')
 def handle_gesture(data):

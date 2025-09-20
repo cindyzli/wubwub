@@ -70,10 +70,10 @@ export default function App() {
 
     let fetchedBites: SoundBite[] = data.soundBites.map((item: any) => ({
       id: item.id,
-      name: item.name,
+      name: item.label,
       icon: getIconForSoundBite(item.id),
       color: getColorForSoundBite(item.id),
-      audioUrl: item.public_url
+      audioUrl: "/public/sound-bites/" + item.id + ".mp3"
     }));
     setSoundBites(fetchedBites);
   }
@@ -172,7 +172,7 @@ export default function App() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url: youtubeUrl, uuid }),
-    });
+    });    
 
     await fetchSongs(); // refresh queue
   };
@@ -208,13 +208,21 @@ export default function App() {
       method: 'POST',
       body: JSON.stringify({
         id: updatedSoundBite.id,
-        name: updatedSoundBite.name,
-        audioData: updatedSoundBite.file ? await updatedSoundBite.file.arrayBuffer() : null
+        label: updatedSoundBite.name,
       }),
       headers: {
         'Content-Type': 'application/json'
       }
     });
+    // save file if exists
+    // if (updatedSoundBite.file) {
+    //   const formData = new FormData();
+    //   formData.append('file', updatedSoundBite.file);
+    //   await fetch(`http://localhost:5001/sound-bites/${updatedSoundBite.id}/upload`, {
+    //     method: 'POST',
+    //     body: formData
+    //   });
+    // }
     await fetchSongBites();
     setIsModalOpen(false);
     setEditingSoundBite(null);
