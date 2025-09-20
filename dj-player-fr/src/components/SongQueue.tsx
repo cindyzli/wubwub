@@ -87,7 +87,6 @@ export function SongQueue({ queue, onAddSong, onRemoveSong, onPlaySong }: SongQu
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => onPlaySong(song.id)}
                   className="text-green-400 hover:text-green-300 hover:bg-green-400/20"
                 >
                   <Play className="w-4 h-4" />
@@ -95,7 +94,6 @@ export function SongQueue({ queue, onAddSong, onRemoveSong, onPlaySong }: SongQu
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => onRemoveSong(song.id)}
                   className="text-red-400 hover:text-red-300 hover:bg-red-400/20"
                 >
                   <X className="w-4 h-4" />
