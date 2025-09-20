@@ -15,7 +15,7 @@ export default function Downloader({ onAddSong }) {
       fetch("http://localhost:5001/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, uuid }),
+        body: JSON.stringify({ url, uuid, kind: "queue" }),
       });
 
       onAddSong(uuid); // add the song into playlist
