@@ -28,7 +28,6 @@ interface Song {
 const socket = io("http://localhost:5001");
 
 export default function App() {
-  const [isNightMode, setIsNightMode] = useState(false);
 
   const fetchSongs = async () => {
     const res = await fetch('http://localhost:5001/download');
@@ -141,9 +140,7 @@ export default function App() {
       }
 
       if (data.action === "toggle_nightcore" && typeof data.state === "number") {
-        // if (data.state != nightcore) {
-            toggleNightcore();
-        // }
+        handleNightcoreToggle();
       }
     });
 
@@ -154,7 +151,6 @@ export default function App() {
 
   const handleNightcoreToggle = () => {
     toggleNightcore();
-    setIsNightMode(!isNightMode);
   };
   const handleNextSong = async () => {
   // Tell backend to drop the first song
@@ -233,7 +229,7 @@ export default function App() {
     setEditingSoundBite(null);
   };
 
-  const themeClass = isNightMode ? 'dj-night-theme' : 'dj-day-theme';
+  const themeClass = nightcore ? 'dj-night-theme' : 'dj-day-theme';
 
   return (
     <div className={`h-screen w-full ${themeClass} transition-all duration-1000`}>
@@ -292,7 +288,7 @@ export default function App() {
                   onChange={(val) => {
                     setBass(val);
                   }}
-                  color={isNightMode ? 'purple' : 'cyan'}
+                  color={nightcore ? 'purple' : 'cyan'}
                 />
 
                 <NightcoreSwitch
@@ -304,7 +300,7 @@ export default function App() {
                   label="VOL"
                   value={volume}
                   onChange={setVolume}
-                  color={isNightMode ? "purple" : "cyan"}
+                  color={nightcore ? "purple" : "cyan"}
                 />
               </div>
 
@@ -348,7 +344,7 @@ export default function App() {
         onClose={handleCloseModal}
         soundBite={editingSoundBite}
         onSave={handleSaveSoundBite}
-        isNightMode={isNightMode}
+        nightcore={nightcore}
       />
     </div>
   );
