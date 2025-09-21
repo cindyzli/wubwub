@@ -134,6 +134,8 @@ We use this to retrieve audio in a format directly consumable by the Web Audio A
 
 Arduino drives connected Adafruit hardware to sync the digital experience with the physical world. LED strips update in real-time with the color visualizer, bringing the board’s energy into a live glowing border. This is communicated through serial instructions from the python server.
 
+![alt text](image-6.png)
+
 ### Sockets and Multithreading
 
 Instead of having the front end constantly poll a REST API for updates (which is inefficient and introduces latency), we used WebSockets to push gesture recognition results directly from the CV backend to the React interface. This gives near real-time responsiveness — the moment a hand moves, the slider updates.
