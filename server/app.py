@@ -84,17 +84,17 @@ class Response(Resource):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
-            # response = genai_client.models.generate_content(
-            #     model="gemini-2.5-flash", contents="Generate a color range between 0 and 360 for hues inspired by the following song: " + info['title'] + 
-            #     " by " + info.get('uploader') + ". Respond with just two numbers min and max, separated by a space.",
-            #     config=types.GenerateContentConfig(
-            #         thinking_config=types.ThinkingConfig(thinking_budget=0) # Disables thinking
-            #     ),
-            # )
+            response = genai_client.models.generate_content(
+                model="gemini-2.5-flash", contents="Generate a color range between 0 and 360 for hues inspired by the following song: " + info['title'] + 
+                " by " + info.get('uploader') + ". Respond with just two numbers min and max, separated by a space.",
+                config=types.GenerateContentConfig(
+                    thinking_config=types.ThinkingConfig(thinking_budget=0) # Disables thinking
+                ),
+            )
 
-            # print("Gemini response:", response)
-            # color_range = response.text.strip()
-            # min_hue, max_hue = color_range.split()
+            print("Gemini response:", response)
+            color_range = response.text.strip()
+            min_hue, max_hue = color_range.split()
             min_hue, max_hue = 75, 180
 
             doc = {

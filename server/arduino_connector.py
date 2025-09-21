@@ -1,27 +1,16 @@
-import serial
-import time
+import serial, time
 
-# adjust port name to your Arduino's
-arduino = serial.Serial(port="COM6", baudrate=9600, timeout=1)
+PORT = "/dev/cu.usbmodem1401"  # <-- replace with your Arduino port
+BAUD = 9600
+
+ser = serial.Serial(PORT, BAUD, timeout=1)
 time.sleep(2)  # wait for Arduino reset
 
-def send_command(cmd):
-    arduino.write(cmd.encode())   # send as bytes
-    print(f"Sent: {cmd}")
-    line = arduino.readline().decode().strip()
+def send_cmd(cmd):
+    ser.write(cmd.encode('utf-8'))
+    line = ser.readline().decode('utf-8').strip()
     if line:
-        print("Arduino replied:", line)
+        print("Arduino:", line)
 
-# Example: cycle colors
-send_command("r")
-time.sleep(2)
-
-send_command("g")
-time.sleep(2)
-
-send_command("b")
-time.sleep(2)
-
-send_command("0")   # turn off
-
-arduino.close()
+# examples
+send_cmd('b')  # red
