@@ -25,8 +25,10 @@ swipe_cooldown = 0
 bass_boost = 50 # starting bass boost
 volume = 50 # starting volume
 
-prev_bass_y = None # vertical position of right hand
-prev_vol_y = None # vertical position of left hand
+bass_motion_window = []
+BASS_WINDOW_SIZE = 5
+vol_motion_window = []
+VOL_WINDOW_SIZE = 5
 prev_right_x = None # for swipe
 
 # Initialize video capture
@@ -144,20 +146,27 @@ def process_frame_and_generate_command(img):
                     else:
                         prev_right_x = None
 
-                # Bass boost control
+                # Bass boost control with motion trend
                 if isFist(hand):
-                    if prev_bass_y is not None:
-                        if y < prev_bass_y - 20 and bass_boost < 100:
-                            bass_boost = min(100, bass_boost + 1)
+                    bass_motion_window.append(y)
+                    if len(bass_motion_window) > BASS_WINDOW_SIZE:
+                        bass_motion_window.pop(0)
+
+                    if len(bass_motion_window) == BASS_WINDOW_SIZE:
+                        motion_trend = bass_motion_window[0] - bass_motion_window[-1]  # positive = upward
+
+                        if motion_trend > 20 and bass_boost < 100:
+                            bass_boost = min(100, bass_boost + 5)
                             print("bass boost:", bass_boost)
                             sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
+                            bass_motion_window.clear()  # reset window after action
                             return new_img
-                        elif y > prev_bass_y + 20 and bass_boost > 0:
-                            bass_boost = max(0, bass_boost - 1)
+                        elif motion_trend < -20 and bass_boost > 0:
+                            bass_boost = max(0, bass_boost - 5)
                             print("bass boost:", bass_boost)
                             sio.emit("gesture", {"action": "adjust_bass", "bass": bass_boost})
+                            bass_motion_window.clear()
                             return new_img
-                    prev_bass_y = y  # update every frame
 
                 # Soundbite control
             if isSoundBite(hand):
@@ -176,20 +185,28 @@ def process_frame_and_generate_command(img):
             if h in dj_hands_ids and hand["type"] == "Left":
                 _, y, _, _ = hand["bbox"]
 
-                # Volume control
+                # Volume control with motion trend
                 if isFist(hand):
-                    if prev_vol_y is not None:
-                        if y < prev_vol_y - 20 and volume < 100:
-                            volume = min(100, volume + 1)
+                    vol_motion_window.append(y)
+                    if len(vol_motion_window) > VOL_WINDOW_SIZE:
+                        vol_motion_window.pop(0)
+
+                    if len(vol_motion_window) == VOL_WINDOW_SIZE:
+                        vol_trend = vol_motion_window[0] - vol_motion_window[-1]  # positive = upward
+
+                        if vol_trend > 20 and volume < 100:
+                            volume = min(100, volume + 5)
                             print("volume:", volume)
                             sio.emit("gesture", {"action": "adjust_vol", "volume": volume})
+                            vol_motion_window.clear()
                             return new_img
-                        elif y > prev_vol_y + 20 and volume > 0:
-                            volume = max(0, volume - 1)
+                        elif vol_trend < -20 and volume > 0:
+                            volume = max(0, volume - 5)
                             print("volume:", volume)
                             sio.emit("gesture", {"action": "adjust_vol", "volume": volume})
+                            vol_motion_window.clear()
                             return new_img
-                    prev_vol_y = y  # update every frame
+
 
                 # Nightcore control
                 if isNightCore(hand):

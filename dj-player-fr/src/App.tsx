@@ -82,11 +82,7 @@ export default function App() {
   }
 
   // Queue state
-  const [songQueue, setSongQueue] = useState<Song[]>([
-    {id: 'b30d976e-8eb9-42b9-aba5-8ceabeacefc2', title: 'Head, Shoulders, Knees & Toes - Exercise Song For Kids', 
-      artist: 'ChuChu TV Nursery Rhymes & Kids Songs', duration: '0:00', thumbnail: 'https://i.ytimg.com/vi_webp/h4eueDYPTIg/maxresdefault.webp', 
-      url: '/public/songs/0d176e72-33b5-48b4-a6d4-cd8a8456f303.mp3', min_hue: 0, max_hue: 360}
-  ]);
+  const [songQueue, setSongQueue] = useState<Song[]>([]);
   const [songUrls, setSongUrls] = useState<string[]>([]);
   const [ledColor, setLedColor] = useState('#00ffff');
 
@@ -150,7 +146,7 @@ export default function App() {
       }
 
       if (data.action === "next_song") {
-        // TODO
+        handleNextSong()
       }
 
       if (data.action === "toggle_nightcore" && typeof data.state === "number") {
