@@ -79,6 +79,7 @@ export function useDJPlayer(songs: string[]) {
 
   // controls
   const play = () => {
+    fetch("http://localhost:5001/sound-bites");
     if (!audioRef.current) return;
     ctxRef.current?.resume();
     audioRef.current.play().catch((err) => {

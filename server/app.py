@@ -9,6 +9,7 @@ from flask_socketio import SocketIO, emit
 from google import genai
 from dotenv import load_dotenv
 from google.genai import types
+from arduino_connector import send_cmd
 
 load_dotenv()
 
@@ -95,7 +96,7 @@ class Response(Resource):
             print("Gemini response:", response)
             color_range = response.text.strip()
             min_hue, max_hue = color_range.split()
-            min_hue, max_hue = 75, 180
+            min_hue, max_hue = 0, 30
 
             doc = {
                 "uuid": uuid,
@@ -126,8 +127,9 @@ class Response(Resource):
     
 class Response2(Resource):
     def get(self):
-        records = list(soundbite_collection.find({}, {'_id': 0}))
-        return {"soundbites": records}
+        send_cmd('r')  # Example command to Arduino
+        # records = list(soundbite_collection.find({}, {'_id': 0}))
+        return {"status": "ok"}
 
     def post(self):
         parser = reqparse.RequestParser()

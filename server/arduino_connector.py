@@ -1,6 +1,6 @@
 import serial, time
 
-PORT = "/dev/cu.usbmodem1401"  # <-- replace with your Arduino port
+PORT = "COM6" # "/dev/cu.usbmodem1401"  # <-- replace with your Arduino port
 BAUD = 9600
 
 ser = serial.Serial(PORT, BAUD, timeout=1)
@@ -13,4 +13,4 @@ def send_cmd(cmd):
         print("Arduino:", line)
 
 # examples
-send_cmd('b')  # red
+# send_cmd('r')  # red
