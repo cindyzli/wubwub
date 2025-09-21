@@ -2,102 +2,104 @@ import { useState, useRef, useEffect } from "react";
 
 export function useDJPlayer(songs: string[]) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Web Audio nodes
+  const ctxRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
+  const bassRef = useRef<BiquadFilterNode | null>(null);
+
+  // state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-
   const [volume, setVolume] = useState(75); // 0–100
-  const [bass, setBass] = useState(50);
+  const [bass, setBass] = useState(50);     // 0–100, mapped later
   const [nightcore, setNightcore] = useState(false);
 
+  // initialize audio + graph once
   useEffect(() => {
-    console.log("Songs updated:", songs);
-    if (!audioRef.current) {
-      audioRef.current = new Audio(songs[0]);
-      audioRef.current.volume = volume / 100;
-      audioRef.current.playbackRate = nightcore ? 1.75 : 1.0;
+    ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioRef.current = new Audio();
+    audioRef.current.crossOrigin = "anonymous";
 
-      // when a song ends, go to next
-      audioRef.current.addEventListener("ended", () => {
-        setCurrentIndex((i) => (i + 1) % songs.length);
+    sourceRef.current = ctxRef.current.createMediaElementSource(audioRef.current);
+
+    // create filter + gain
+    bassRef.current = ctxRef.current.createBiquadFilter();
+    bassRef.current.type = "lowshelf";
+    bassRef.current.frequency.value = 200;
+
+    gainRef.current = ctxRef.current.createGain();
+
+    // connect chain: audio → bass → gain → destination
+    sourceRef.current
+      .connect(bassRef.current)
+      .connect(gainRef.current)
+      .connect(ctxRef.current.destination);
+
+    // when song ends → next
+    audioRef.current.addEventListener("ended", () => {
+      setCurrentIndex((i) => (i + 1) % songs.length);
+    });
+  }, []);
+
+  // update song when index changes
+  useEffect(() => {
+    if (!audioRef.current || songs.length === 0) return;
+    audioRef.current.src = songs[currentIndex];
+    if (isPlaying) {
+      ctxRef.current?.resume();
+      audioRef.current.play().catch((err) => {
+        if (err.name !== "AbortError") console.error("Play failed:", err);
       });
     }
-    if (songs.length === 0) return;
-    audioRef.current.src = songs[0];
-  }, [songs]);
-
-  // load new song when index changes
-  // play/pause effect — runs whenever isPlaying flips
-// effect to handle play/pause
-// useEffect(() => {
-//   if (!audioRef.current) return;
-
-//   if (isPlaying) {
-//     if (songs[currentIndex]) {
-//       // always reset src first
-//       console.log("Setting src to:", songs[currentIndex]);
-//       audioRef.current.src = songs[currentIndex];
-
-//       // wait until the file is ready before calling play
-//       const handleCanPlay = () => {
-//         audioRef.current.play().catch((err) => {
-//           if (err.name !== "AbortError") {
-//             console.error("Play failed:", err);
-//           }
-//         });
-//       };
-
-//       audioRef.current.addEventListener("canplaythrough", handleCanPlay, { once: true });
-//       // cleanup in case index or state flips before it loads
-//       return () => {
-//         audioRef.current.removeEventListener("canplaythrough", handleCanPlay);
-//       };
-//     }
-//   } else {
-//     audioRef.current.pause();
-//   }
-// }, [isPlaying, currentIndex, songs]);
-
+  }, [currentIndex, songs, isPlaying]);
 
   // apply volume
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume / 100;
+    if (gainRef.current) {
+      gainRef.current.gain.value = volume / 100; // 0.0–1.0
     }
   }, [volume]);
+
+  // apply bass
+  useEffect(() => {
+    if (bassRef.current) {
+      // map slider (0–100) → -30 to +30 dB
+      bassRef.current.gain.value = (bass - 50) * (60 / 100);
+    }
+  }, [bass]);
 
   // apply nightcore
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.playbackRate = nightcore ? 1.75 : 1.0;
+      audioRef.current.playbackRate = nightcore ? 1.25 : 1.0;
     }
   }, [nightcore]);
 
-  useEffect(() => {
-    console.log("Bass set to", bass);
-  }, [bass]);
-
+  // controls
   const play = () => {
-    console.log("play()")
     if (!audioRef.current) return;
+    ctxRef.current?.resume();
     audioRef.current.play().catch((err) => {
-      if (err.name !== "AbortError") {
-        console.error("Play failed:", err);
-      }
+      if (err.name !== "AbortError") console.error("Play failed:", err);
     });
     setIsPlaying(true);
   };
 
   const pause = () => {
-    if (!audioRef.current) return;
-    audioRef.current.pause();
-    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
   };
 
   const stop = () => {
-    if (!audioRef.current) return;
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+    }
   };
 
   const nextSong = () => {
@@ -106,10 +108,10 @@ export function useDJPlayer(songs: string[]) {
     }
   };
 
-  const playSongAt = (index: number) => {
-    if (index >= 0 && index < songs.length) {
-      setCurrentIndex(index);
-      setIsPlaying(true); // triggers useEffect above → will wait for canplay
+  const playSongAt = (i: number) => {
+    if (i >= 0 && i < songs.length) {
+      setCurrentIndex(i);
+      setIsPlaying(true);
     }
   };
 
