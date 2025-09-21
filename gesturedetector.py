@@ -171,7 +171,7 @@ def process_frame_and_generate_command(img):
                 # Soundbite control
             if isSoundBite(hand):
                 soundbite_frames += 1
-                if soundbite_frames >= 5 and not_soundbite_frames >= 5:
+                if soundbite_frames >= 4 and not_soundbite_frames >= 4:
                     soundbite_frames = 0
                     not_soundbite_frames = 0
                     print("sound bite:", fingers)
@@ -179,7 +179,7 @@ def process_frame_and_generate_command(img):
                     return new_img
             else:
                 soundbite_frames = 0
-                if not_soundbite_frames < 5:
+                if not_soundbite_frames < 4:
                     not_soundbite_frames += 1
                 
             if h in dj_hands_ids and hand["type"] == "Left":

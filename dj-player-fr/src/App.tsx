@@ -66,20 +66,20 @@ export default function App() {
     }
   }
 
-  const fetchSongBites = async () => {
-    const res = await fetch('http://localhost:5001/sound-bites');
-    const data = await res.json();
-    console.log('Fetched sound bites:', data.soundBites);
+  // const fetchSongBites = async () => {
+  //   const res = await fetch('http://localhost:5001/sound-bites');
+  //   const data = await res.json();
+  //   console.log('Fetched sound bites:', data.soundBites);
 
-    let fetchedBites: SoundBite[] = data.soundBites.map((item: any) => ({
-      id: item.uuid,
-      name: item.label,
-      icon: getIconForSoundBite(item.id),
-      color: getColorForSoundBite(item.id),
-      audioUrl: "/public/sound-bites/" + item.id + ".mp3"
-    }));
-    setSoundBites(fetchedBites);
-  }
+  //   let fetchedBites: SoundBite[] = data.soundBites.map((item: any) => ({
+  //     id: item.uuid,
+  //     name: item.label,
+  //     icon: getIconForSoundBite(item.id),
+  //     color: getColorForSoundBite(item.id),
+  //     audioUrl: "/public/sound-bites/" + item.id + ".mp3"
+  //   }));
+  //   setSoundBites(fetchedBites);
+  // }
 
   // Queue state
   const [songQueue, setSongQueue] = useState<Song[]>([]);
@@ -92,11 +92,35 @@ export default function App() {
 
   // Sound Bites state
   const [soundBites, setSoundBites] = useState<SoundBite[]>([
-    { id: '1', name: 'Air Horn', icon: <Speaker className="w-6 h-6" />, color: 'from-red-500 to-orange-500', audioUrl: undefined },
-    { id: '2', name: 'Applause', icon: <Volume2 className="w-6 h-6" />, color: 'from-green-500 to-emerald-500', audioUrl: undefined },
-    { id: '3', name: 'Bass Drop', icon: <Music className="w-6 h-6" />, color: 'from-purple-500 to-indigo-500', audioUrl: undefined },
-    { id: '4', name: 'Scratch', icon: <Disc className="w-6 h-6" />, color: 'from-yellow-500 to-amber-500', audioUrl: undefined },
-  ]);
+  {
+    id: '1',
+    name: 'Air Horn',
+    icon: <Speaker className="w-6 h-6" />,
+    color: 'from-red-500 to-orange-500',
+    audioUrl: '/sound-bites/1.mp3'
+  },
+  {
+    id: '2',
+    name: 'Nokia',
+    icon: <Volume2 className="w-6 h-6" />,
+    color: 'from-green-500 to-emerald-500',
+    audioUrl: '/sound-bites/2.mp3'
+  },
+  {
+    id: '3',
+    name: 'Hype',
+    icon: <Music className="w-6 h-6" />,
+    color: 'from-purple-500 to-indigo-500',
+    audioUrl: '/sound-bites/3.mp3'
+  },
+  {
+    id: '4',
+    name: 'Scratch',
+    icon: <Disc className="w-6 h-6" />,
+    color: 'from-yellow-500 to-amber-500',
+    audioUrl: '/sound-bites/4.mp3'
+  }
+]);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -231,7 +255,7 @@ export default function App() {
     //     body: formData
     //   });
     // }
-    await fetchSongBites();
+    // await fetchSongBites();
     setIsModalOpen(false);
     setEditingSoundBite(null);
   };
