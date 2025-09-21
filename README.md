@@ -34,10 +34,16 @@
     <li>
       <a href="#technologies">Technologies</a>
       <ul>
-        <li><a href="#roboflow">Roboflow</a></li>
-        <li><a href="#streamlit">Streamlit</a></li>
-        <li><a href="#matlab">Matlab</a></li>
-        <li><a href="#optimizations">Optimizations</a></li>
+        <li><a href="#mongodb">MongoDB</a></li>
+        <li><a href="#gemini">Gemini</a></li>
+        <li><a href="#web">Web Audio API</a></li>
+        <li><a href="#mediapipe">Mediapipe and OpenCV</a></li>
+        <li><a href="#youtube">Youtube DLP</a></li>
+        <li><a href="#arduino">Arduino and Adafruit</a></li>
+        <li><a href="#multithreading">Sockets and Multithreading</a></li>
+        <li><a href="#tailwind">Figma and Tailwind</a></li>
+        <li><a href="#vite">Vite and React</a></li>
+        <li><a href="#flask">Flask</a></li>
       </ul>
     </li>
     <li><a href="#contact">Contact</a></li>
@@ -50,36 +56,41 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-![alt text](image.png)
+![alt text](image-1.png)
 
-Imagine a hospital where patients can adjust their room's lighting, temperature, or even call for assistance—all with a simple gesture. Picture nurses administering medications to patients without physical contact, ensuring hygiene, speed, and efficiency. Welcome to Pi-Pal, a cutting-edge healthcare solution that blends gesture recognition technology with smart automation to redefine patient comfort and nurse productivity.
+wubwub is a web-based, gesture-controlled music mixing interface that brings the energy of a DJ setup straight into the browser. Built with computer vision, every control is fully responsive to hand movements — no mouse or keyboard required.
 
-**Problem**
+**Features**
 
-Hospitals often rely on manual controls and physical interaction for basic tasks, making them cumbersome for patients with mobility challenges or contagious illnesses.
-Traditional medicine dispensation requires physical contact, increasing the risk of contamination and exposure for both nurses and patients, especially during pandemics.
+- Dual Spinning CDs – Showcases album art for the current and upcoming songs.
+- Gesture-Controlled Sliders – Adjust bass boost and volume with vertical hand movements.
+- Nightcore Switch – Triggerable by gesture, this not only alters playback but also transforms the site’s theme (day ↔ night) in neon DJ style.
 
-**Our Solution**
 
-Pi-Pal introduces a gesture-controlled hospital room system powered by an advanced computer vision model and demo-ed with socket connections to a Raspberry Pi. Here's what it offers:
+![alt text](image-2.png)
 
-- Contactless Environment Control: Patients can adjust lighting and call for assisstance using hand gestures, tailored to their mobility.
+- Dynamic Song Queue – Paste YouTube links to add tracks to the queue on the fly.
+- Sound Bites – Quick-trigger sound effect buttons for live mixing, editable through a pop-up menu.
 
-- Contactless Medicine Dispensal: Using gesture controls and facial recognition, nurses can unlock and dispense pre-assigned medications through a hygienic, automated system.
+![alt text](image-3.png)
 
-- Efficient Workflow: Track all requests and actions in real-time with a streamlined UI, ensuring timely responses and efficient patient care.
+- LED Visualizer – A color bar displays dynamic LED color matching the mood of the song, with synced flashing along the border of the interface.
 
 ### Built With
 
-[![OpenCV][OpenCV]][OpenCV-url]
-[![Mediapipe][Mediapipe]][Mediapipe-url]
-[![Python][Python]][Python-url]
-[![Nextjs][Nextjs]][Nextjs-url]
-[![Databricks][Databricks]][Databricks-url]
 [![MongoDB][MongoDB]][MongoDB-url]
-[![GoDaddy][GoDaddy]][GoDaddy-url]
-[![Rpi][Rpi]][Rpi-url]
+[![Gemini][Gemini]][Gemini-url]
+[![Web Audio API][Web Audio API]][web-url]
+[![Mediapipe][Mediapipe]][Mediapipe-url]
+[![OpenCV][OpenCV]][OpenCV-url]
+[![Youtube DLP][Youtube DLP]][youtube-url]
+[![Arduino][Arduino]][arduino-url]
+[![Adafruit][Adafruit]][adafruit-url]
+[![Python][Python]][Python-url]
+[![Figma][Figma]][Figma-url]
 [![Tailwind][Tailwind]][Tailwind-url]
+[![Vite][Vite]][Vite-url]
+[![Flask][Flask]][Flask-url]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -89,80 +100,93 @@ Pi-Pal introduces a gesture-controlled hospital room system powered by an advanc
 <!-- GETTING STARTED -->
 ## Technologies
 
-### Computer Vision
+### MongoDB
 
-Our solution leverages OpenCV and MediaPipe for real-time gesture and face detection, ensuring high accuracy and efficiency in dynamic hospital environments.
-
-Gesture Detection: Using MediaPipe’s hand tracking module, we accurately identify and interpret patient gestures, such as holding up fingers to adjust lighting or raising a call sign to call for assistance. This ensures a seamless, intuitive interface that works even in low-light or cluttered environments.
-
-Face Detection for Nurse Authentication: MediaPipe Face Detection, combined with OpenCV, provides a secure and contactless method for nurse verification before dispensing medication. By recognizing authorized personnel in real time, we eliminate the need for physical contact with dispensing systems, enhancing both hygiene and security.
-
-Efficiency with OpenCV: OpenCV handles video feed processing, enabling smooth real-time performance with minimal latency. Its integration ensures that gesture recognition operates seamlessly on affordable hardware, making the system scalable for widespread hospital deployment.
-
-![alt text](image.jpg)
-
-### Hardware Pipeline
-
-To bridge the gap between gesture recognition and physical hardware control, we utilized sockets to send real-time commands from our gesture detection system to a Raspberry Pi, which acts as the central hub for managing room devices.
-
-**Sockets for Real-Time Communication:**
-
-Our system uses Python sockets to establish a seamless communication channel between the gesture detection module (running on a laptop or server) and the Raspberry Pi.
-When a gesture is detected , the corresponding command is sent to the Raspberry Pi over a TCP connection. This setup ensures immediate responsiveness, making the interaction feel smooth and intuitive.
-
-The use of sockets allows the gesture detection system to run on a powerful external machine, while the Raspberry Pi focuses solely on device control, reducing load and making the system highly modular.
-
-This architecture makes it easy to add more devices or expand functionality without disrupting the core setup.
-
-**Hardware Integration with GPIO:**
-
-The Raspberry Pi is wired to control essential room devices via its GPIO (General-Purpose Input/Output) pins:
-
-- LEDs: Represent the lighting in the room; dimness can be finely personalized by adjusting the PWM (Pulse Width Modulation) signal.
-
-- Buzzer: Alerts nurses when a patient calls for assistance
-
-- Servo Motor: Enables contactless medicine dispensing by controlling a small 3D-printed mechanism to deliver medication trays directly to patients.
-
-![alt text](image-1.png)
-
-### Analytics
-
-Our system integrates with Databricks and OpenAI for real-time data processing and analytics, enabling hospitals to monitor patient requests, nurse responses, and room conditions in a centralized dashboard. All data from the backend servers are stored in MongoDB for easy access and retrieval. We used Terraform to set up and manage MongoDB and Databricks resources.
-
-We display key metrics on a user-friendly interface coded using Next.js and Tailwind CSS, ensuring that hospital staff can quickly access and act on critical information. This frontend is hosted on GoDaddy.
+MongoDB stores the active song queue, sound bite configurations, and user session data. It allows the system to persist state across reloads and ensures seamless queue management when multiple tracks are added.
 
 ![alt text](image-4.png)
+
+### Gemini
+
+Gemini is used to enrich the music experience by generating color hues that match the mood of each song. These hues are displayed on both the website and LED strip and flash to the beat!
+
+### Web Audio API
+
+The Web Audio API is a low-level audio processing interface built into modern browsers. Instead of just playing audio files, it exposes a graph-based system of audio nodes that can be connected, modified, and rerouted in real time. 
+
+In our project, audio streams from YouTube-DLP are fed into AudioContext nodes, where we apply effects like biquad filters for bass boosting, playback rate adjustments for Nightcore, and gain nodes for volume control. Because the API runs natively in the browser, these transformations are highly performant and sample-accurate, giving us professional-grade sound manipulation without external software.
+
+### Mediapipe and OpenCV
+
+Mediapipe provides a pretrained, GPU-optimized pipeline for tracking hand landmarks in real time (21 key points per hand). Under the hood, it uses deep learning models to estimate 3D positions of these landmarks from a webcam feed. We use these points to detect gestures — for example, vertical hand movement mapped to volume, or a toggle gesture mapped to the Nightcore switch.
+
+Meanwhile, OpenCV handles lower-level video stream preprocessing (frame capture, smoothing, thresholding). Mediapipe alone can track landmarks, but OpenCV gives us fine control to stabilize and clean the input data. Together, they provide a fast, accurate gesture recognition system that works entirely on consumer webcams.
+
+![alt text](image-5.png)
+
+### Youtube DLP
+
+YouTube-DLP is a Python-based tool that bypasses YouTube’s standard playback UI to fetch the direct media streams and metadata. Behind the hood, it parses YouTube’s page structure, extracts the dynamic streaming manifests (DASH/HLS), and resolves the highest-quality audio link. 
+
+We use this to retrieve audio in a format directly consumable by the Web Audio API, along with thumbnails/metadata for the spinning CD visuals. Since fetching and parsing manifests can take time, we threaded this process so the user doesn’t experience UI freezes while adding new tracks.
+
+### Arduino and Adafruit
+
+Arduino drives connected Adafruit hardware to sync the digital experience with the physical world. LED strips update in real-time with the color visualizer, bringing the board’s energy into a live glowing border. This is communicated through serial instructions from the python server.
+
+### Sockets and Multithreading
+
+Instead of having the front end constantly poll a REST API for updates (which is inefficient and introduces latency), we used WebSockets to push gesture recognition results directly from the CV backend to the React interface. This gives near real-time responsiveness — the moment a hand moves, the slider updates.
+
+We also applied multithreading in the backend: YouTube-DLP runs in its own thread so video metadata extraction and audio URL resolution don’t block the main Flask event loop. This ensures that gesture control and LED updates remain smooth while new songs are loading in parallel.
+
+### Figma and Tailwind
+
+Figma was used to design the UI with an emphasis on neon, futuristic DJ vibes. Tailwind CSS translated those designs into a clean, responsive, and customizable interface that feels both modern and immersive.
+
+### Vite & React
+
+React powers the interactive UI — from the dual spinning CDs to the live queue and sound bite grid. Vite makes development fast and efficient with hot reloading and optimized builds for smooth browser performance.
+
+### Flask
+
+Flask serves as the project’s backend framework, connecting all the pieces together. It manages the API endpoints, handles YouTube-DLP calls, talks to MongoDB, and coordinates real-time communication with the front end and hardware.
 
 <!-- CONTACT -->
 ## Contact
 
-Cindy Li (face recognition, analytics) - cl2674@cornell.edu
+Cindy Li (audio processing, hardware, youtube extraction) - cl2674@cornell.edu
 
-Cindy Yang (rpi pipeline, frontend) - cwyang@umich.edu
+Cindy Yang (design, mongodb, hardware, gemini, threading) - cwyang@umich.edu
 
-Elise Zhu (gesture recognition, design) - eyz7@georgetown.edu
-
-![alt text](image-3.png)
+Elise Zhu (gesture recognition, sockets, sound bites) - eyz7@georgetown.edu
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[MongoDB]: https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=MongoDB&logoColor=white
+[MongoDB-url]: https://www.mongodb.com/
+[Gemini]: https://img.shields.io/badge/Gemini-8E75B2?style=for-the-badge&logo=GoogleGemini&logoColor=white
+[Gemini-url]: https://aistudio.google.com/
+[Web Audio API]: https://img.shields.io/badge/WebAudioAPI-000000?style=for-the-badge&logo=mdnwebdocs&logoColor=white
+[web-url]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
 [OpenCV]: https://img.shields.io/badge/opencv-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white
 [OpenCV-url]: https://opencv.org/
 [Mediapipe]: https://img.shields.io/badge/mediapipe-0097A7?style=for-the-badge&logo=mediapipe&logoColor=white
 [Mediapipe-url]: https://github.com/google-ai-edge/mediapipe
+[Youtube DLP]: https://img.shields.io/badge/youtubedlp-FF0000?style=for-the-badge&logo=youtube&logoColor=white
+[youtube-url]: https://github.com/yt-dlp/yt-dlp
+[Arduino]: https://img.shields.io/badge/arduino-00878F?style=for-the-badge&logo=arduino&logoColor=white
+[arduino-url]: https://www.arduino.cc/
+[Adafruit]: https://img.shields.io/badge/adafruit-000000?style=for-the-badge&logo=adafruit&logoColor=white
+[adafruit-url]: https://learn.adafruit.com/
 [Python]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
 [Python-url]: https://www.python.org/
-[Nextjs]: https://img.shields.io/badge/Nextjs-000000?style=for-the-badge&logo=Next.js&logoColor=white
-[Nextjs-url]: https://nextjs.org/
-[Databricks]: https://img.shields.io/badge/databricks-FF3621?style=for-the-badge&logo=Databricks&logoColor=white
-[Databricks-url]: https://www.databricks.com/product/open-source
-[MongoDB]: https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=MongoDB&logoColor=white
-[MongoDB-url]: https://www.mongodb.com/
-[GoDaddy]: https://img.shields.io/badge/GoDaddy-1BDBDB?style=for-the-badge&logo=GoDaddy&logoColor=white
-[GoDaddy-url]: https://www.godaddy.com/
-[Rpi]: https://img.shields.io/badge/RaspberryPi-A22846?style=for-the-badge&logo=Raspberry-Pi&logoColor=white
-[Rpi-url]: https://www.raspberrypi.org/
+[Figma]: https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white
+[Figma-url]:https://www.figma.com/
+[Vite]: https://img.shields.io/badge/vite-646CFF?style=for-the-badge&logo=vite&logoColor=white
+[Vite-url]:https://vite.dev/
 [Tailwind]: https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=Tailwind-CSS&logoColor=white
 [Tailwind-url]: https://tailwindcss.com/
+[Flask]: https://img.shields.io/badge/flask-3BABC3?style=for-the-badge&logo=flask&logoColor=white
+[Flask-url]: https://flask.palletsprojects.com/en/stable/
