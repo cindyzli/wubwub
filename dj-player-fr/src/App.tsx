@@ -10,7 +10,7 @@ import { LEDColorBarV2 } from './components/LEDColorBarV2';
 import logo from './img/logo.png';
 import { useDJPlayer } from './hooks/useDjPlayer';
 import { SoundBitesV2, SoundBite } from './components/SoundBitesV2';
-import { Zap, Volume2, Music, Disc, Radio, Headphones, Mic, Speaker } from 'lucide-react';
+import { Play, Pause, SkipForward, Zap, Volume2, Music, Disc, Radio, Headphones, Mic, Speaker } from 'lucide-react';
 import { SoundBiteModal } from './components/SoundBiteModal';
 
 
@@ -273,7 +273,7 @@ export default function App() {
         <div className="h-full w-full p-4">
 
          {/* Play/Pause + Next Buttons */}
-<div className="absolute top-4 left-4 z-10 flex gap-2">
+{/* <div className="absolute top-4 left-4 z-10 flex gap-2">
   <button
     onClick={isPlaying ? pause : play}
     className="px-4 py-2 bg-cyan-500 text-white rounded-lg shadow hover:bg-cyan-600 transition"
@@ -287,7 +287,7 @@ export default function App() {
   >
     ⏭ Next
   </button>
-</div>
+</div> */}
 
           {/* Header: Queue + Logo */}
           <div className="flex-shrink-0">
@@ -327,10 +327,61 @@ export default function App() {
                   color={nightcore ? 'purple' : 'cyan'}
                 />
 
-                <NightcoreSwitch
-                  isOn={nightcore}
-                  onToggle={handleNightcoreToggle}
-                />
+                <div className="flex flex-col justify-center items-center space-y-4">
+                  <NightcoreSwitch
+                    isOn={nightcore}
+                    onToggle={handleNightcoreToggle}
+                  />
+                  
+                  {/* Transport Controls */}
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={isPlaying ? pause : play}
+                      className={`
+                        w-12 h-12 rounded-full border-2 
+                        ${nightcore 
+                          ? 'border-purple-400 bg-gradient-to-br from-purple-600/20 to-purple-800/40 text-purple-300 hover:from-purple-500/30 hover:to-purple-700/50 hover:border-purple-300' 
+                          : 'border-cyan-400 bg-gradient-to-br from-cyan-600/20 to-cyan-800/40 text-cyan-300 hover:from-cyan-500/30 hover:to-cyan-700/50 hover:border-cyan-300'
+                        }
+                        flex items-center justify-center transition-all duration-200 
+                        hover:scale-105 active:scale-95 backdrop-blur-sm
+                        shadow-lg hover:shadow-xl
+                      `}
+                      style={{ 
+                        boxShadow: nightcore 
+                          ? '0 0 15px rgba(139, 0, 255, 0.3), inset 0 0 10px rgba(139, 0, 255, 0.1)' 
+                          : '0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1)' 
+                      }}
+                    >
+                      {isPlaying ? (
+                        <Pause className="w-6 h-6" />
+                      ) : (
+                        <Play className="w-6 h-6 ml-0.5" />
+                      )}
+                    </button>
+                    
+                    <button
+                      onClick={handleNextSong}
+                      className={`
+                        w-12 h-12 rounded-full border-2 
+                        ${nightcore 
+                          ? 'border-purple-400 bg-gradient-to-br from-purple-600/20 to-purple-800/40 text-purple-300 hover:from-purple-500/30 hover:to-purple-700/50 hover:border-purple-300' 
+                          : 'border-cyan-400 bg-gradient-to-br from-cyan-600/20 to-cyan-800/40 text-cyan-300 hover:from-cyan-500/30 hover:to-cyan-700/50 hover:border-cyan-300'
+                        }
+                        flex items-center justify-center transition-all duration-200 
+                        hover:scale-105 active:scale-95 backdrop-blur-sm
+                        shadow-lg hover:shadow-xl
+                      `}
+                      style={{ 
+                        boxShadow: nightcore 
+                          ? '0 0 15px rgba(139, 0, 255, 0.3), inset 0 0 10px rgba(139, 0, 255, 0.1)' 
+                          : '0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1)' 
+                      }}
+                    >
+                      <SkipForward className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
 
                 <VerticalSlider
                   label="VOL"
