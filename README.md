@@ -58,7 +58,7 @@
 
 ![alt text](image-1.png)
 
-wubwub is a web-based, gesture-controlled music mixing interface that brings the energy of a DJ setup straight into the browser. Built with computer vision, every control is fully responsive to hand movements — no mouse or keyboard required.
+wubwub is a web-based, gesture-controlled music mixing interface that brings the energy of a DJ setup straight into the browser. Built with computer vision, no keyboard or mouse is required. Every control is fully responsive to hand movements!
 
 **Features**
 
@@ -118,7 +118,7 @@ In our project, audio streams from YouTube-DLP are fed into AudioContext nodes, 
 
 ### Mediapipe and OpenCV
 
-Mediapipe provides a pretrained, GPU-optimized pipeline for tracking hand landmarks in real time (21 key points per hand). Under the hood, it uses deep learning models to estimate 3D positions of these landmarks from a webcam feed. We use these points to detect gestures — for example, vertical hand movement mapped to volume, or a toggle gesture mapped to the Nightcore switch.
+Mediapipe provides a pretrained, GPU-optimized pipeline for tracking hand landmarks in real time (21 key points per hand). Under the hood, it uses deep learning models to estimate 3D positions of these landmarks from a webcam feed. We use these points to detect gestures. For example, vertical hand movement mapped to volume, or a toggle gesture mapped to the Nightcore switch.
 
 Meanwhile, OpenCV handles lower-level video stream preprocessing (frame capture, smoothing, thresholding). Mediapipe alone can track landmarks, but OpenCV gives us fine control to stabilize and clean the input data. Together, they provide a fast, accurate gesture recognition system that works entirely on consumer webcams.
 
