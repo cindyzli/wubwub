@@ -34,7 +34,7 @@ export default function App() {
   const fetchSongs = async () => {
     const res = await fetch('http://localhost:5001/download');
     const data = await res.json();
-    console.log(data.songs);
+    console.log("Setting from fetch");
 
     let fetchedSongs: Song[] = data.songs.map((item: any) => ({
       id: item.id,
@@ -72,7 +72,7 @@ export default function App() {
     console.log('Fetched sound bites:', data.soundBites);
 
     let fetchedBites: SoundBite[] = data.soundBites.map((item: any) => ({
-      id: item.id,
+      id: item.uuid,
       name: item.label,
       icon: getIconForSoundBite(item.id),
       color: getColorForSoundBite(item.id),
@@ -82,8 +82,17 @@ export default function App() {
   }
 
   // Queue state
-  const [songQueue, setSongQueue] = useState<Song[]>([]);
+  const [songQueue, setSongQueue] = useState<Song[]>([
+    {id: 'b30d976e-8eb9-42b9-aba5-8ceabeacefc2', title: 'Head, Shoulders, Knees & Toes - Exercise Song For Kids', 
+      artist: 'ChuChu TV Nursery Rhymes & Kids Songs', duration: '0:00', thumbnail: 'https://i.ytimg.com/vi_webp/h4eueDYPTIg/maxresdefault.webp', 
+      url: '/public/songs/0d176e72-33b5-48b4-a6d4-cd8a8456f303.mp3', min_hue: 0, max_hue: 360}
+  ]);
+  const [songUrls, setSongUrls] = useState<string[]>([]);
   const [ledColor, setLedColor] = useState('#00ffff');
+
+  useEffect(() => {
+    setSongUrls(songQueue.map((s) => s.url));
+  }, [songQueue]);
 
   // Sound Bites state
   const [soundBites, setSoundBites] = useState<SoundBite[]>([
@@ -112,10 +121,11 @@ export default function App() {
     volume,
     bass,
     audioEl,
-  } = useDJPlayer(songQueue.map((s) => s.url));
+  } = useDJPlayer(songUrls);
 
   // Initial load + socket gesture handler
   useEffect(() => {
+    console.log("App mounted");
     const initialize = async () => {
       await fetchSongs();
       // await fetchSongBites();
@@ -178,6 +188,7 @@ export default function App() {
   };
 
   const handleRemoveSong = (id: string) => {
+    console.log("Setting from remove song")
     setSongQueue(songQueue.filter((song) => song.id !== id));
   };
 
