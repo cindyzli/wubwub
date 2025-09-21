@@ -163,6 +163,7 @@ export default function App() {
     toggleNightcore();
   };
   const handleNextSong = async () => {
+    pause()
   // Tell backend to drop the first song
   await fetch("http://localhost:5001/download", { method: "DELETE" });
   // Refresh queue from Mongo

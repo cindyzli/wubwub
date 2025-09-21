@@ -6,9 +6,9 @@ from threading import Thread
 from pymongo.mongo_client import MongoClient
 from urllib.parse import quote
 from flask_socketio import SocketIO, emit
-from google import genai
+# from google import genai
 from dotenv import load_dotenv
-from google.genai import types
+# from google.genai import types
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
-genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 DOWNLOADS_DIR = os.path.join("..", "dj-player-fr", "public", "songs")
