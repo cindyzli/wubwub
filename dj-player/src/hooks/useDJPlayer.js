@@ -13,23 +13,27 @@ export function useDJPlayer(songs) {
 
   // initialize audio context + graph once
   useEffect(() => {
-    ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+  ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
 
-    audioRef.current = new Audio();
-    audioRef.current.crossOrigin = "anonymous";
+  // create one <audio> element
+  audioRef.current = new Audio();
+  audioRef.current.crossOrigin = "anonymous";
+  audioRef.current.muted = true;  // prevent double playback
 
-    sourceRef.current = ctxRef.current.createMediaElementSource(audioRef.current);
+  // create one source node
+  sourceRef.current = ctxRef.current.createMediaElementSource(audioRef.current);
 
-    gainRef.current = ctxRef.current.createGain();
-    bassRef.current = ctxRef.current.createBiquadFilter();
-    bassRef.current.type = "lowshelf";
-    bassRef.current.frequency.value = 200;
+  gainRef.current = ctxRef.current.createGain();
+  bassRef.current = ctxRef.current.createBiquadFilter();
+  bassRef.current.type = "lowshelf";
+  bassRef.current.frequency.value = 200;
 
-    sourceRef.current
-      .connect(bassRef.current)
-      .connect(gainRef.current)
-      .connect(ctxRef.current.destination);
-  }, []);
+  sourceRef.current
+    .connect(bassRef.current)
+    .connect(gainRef.current)
+    .connect(ctxRef.current.destination);
+}, []);
+
 
   // update audio src whenever playlist/index changes
   useEffect(() => {
